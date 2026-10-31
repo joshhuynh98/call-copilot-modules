@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "agent_id": "agent_hana",
+  "name": "Hana Kobayashi",
+  "tone": "concise and courteous; plain English without idioms; careful to state only what is confirmed",
+  "preferred_language": "en",
+  "glossary": [
+    {"term": "Central Management", "preferred": "MetaDefender Central Management"},
+    {"term": "Core", "preferred": "MetaDefender Core"},
+    {"term": "bug", "preferred": "known issue", "avoid": "bug"}
+  ],
+  "sample_emails": [
+    "Hello Ms Duarte,\n\nThank you for speaking with me today.\n\nWhat I understood: the report export fails when the date range is longer than one month.\n\nStill to confirm: whether the same happens on the test system.\n\nNext steps:\n1. You: try a one-week range and tell me the result.\n2. Me: check the export documentation.\n\nRegards,\nHana"
+  ],
+  "signature": "Regards,\nHana Kobayashi\nTechnical Support Engineer, OPSWAT"
+}

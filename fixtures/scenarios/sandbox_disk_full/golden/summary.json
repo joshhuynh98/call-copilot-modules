@@ -1,0 +1,25 @@
+{
+  "plain_language": "Redcliffe's MetaDefender Sandbox 2.8.0 queue has not moved since yesterday morning. The data drive is about 96 percent full and the log says there is not enough free disk space to start a new analysis. Over a year of reports and old analysis VM images are stored there. Hannah will send folder sizes and delete nothing by hand; Luca will send the documented cleanup steps.",
+  "issue": {"text": "New files submitted to Sandbox stay in the queue since yesterday morning; no analysis starts and the queue count keeps growing.", "segment_ids": ["seg_002"]},
+  "product": {"name": "MetaDefender Sandbox", "version": "2.8.0", "segment_ids": ["seg_004"], "uncertain": false},
+  "steps_taken": [
+    {"text": "Customer checked the monitoring page: CPU and memory are normal, the data drive is about 96 percent full.", "segment_ids": ["seg_006"]},
+    {"text": "Customer found the disk space error in the Sandbox log.", "segment_ids": ["seg_010"]},
+    {"text": "Agent asked the customer not to delete anything by hand until the cleanup steps arrive.", "segment_ids": ["seg_013"]}
+  ],
+  "findings": [
+    {"text": "The Sandbox log repeats 'not enough free disk space to start a new analysis' each time a job is picked up.", "segment_ids": ["seg_010"]},
+    {"text": "The data drive is about 500 GB; every analysis report since installation has been kept (oldest about 14 months) and several unused analysis VM images from testing remain.", "segment_ids": ["seg_008", "seg_014"]},
+    {"text": "Sandbox is version 2.8.0 on a single server and has not been upgraded in about four months.", "segment_ids": ["seg_004"]}
+  ],
+  "next_actions": [
+    {"owner": "customer", "action": "Export a breakdown of folder sizes on the data drive and send it to the agent.", "due": "today", "segment_ids": ["seg_013", "seg_014"]},
+    {"owner": "agent", "action": "Send the documented cleanup steps.", "segment_ids": ["seg_013"]},
+    {"owner": "agent", "action": "Confirm which items are safe to remove and what to check once the queue moves again.", "segment_ids": ["seg_015"]}
+  ],
+  "open_questions": [
+    {"text": "The exact free-space threshold at which Sandbox stops starting new analyses.", "segment_ids": ["seg_011"], "uncertain": true},
+    {"text": "Whether old reports, VM images or something else uses most of the space.", "segment_ids": ["seg_007", "seg_008", "seg_013"], "uncertain": true}
+  ],
+  "third_party_components": []
+}

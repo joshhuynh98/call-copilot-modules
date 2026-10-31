@@ -1,0 +1,30 @@
+{
+  "plain_language": "After each logoff on Tideline's non-persistent virtual desktops, MetaDefender Endpoint users show as unregistered and the pushed settings are lost. The log shows a certificate trust failure caused by the customer's SSL inspection proxy, and the profile tool restores settings after Endpoint starts. Both are third-party products, so the customer's own teams and vendors should handle them. Elena will confirm the Endpoint side from the full log.",
+  "issue": {"text": "On non-persistent virtual desktops, MetaDefender Endpoint users show as unregistered each morning and the pushed settings are gone after logoff and logon.", "segment_ids": ["seg_002", "seg_004"]},
+  "product": {"name": "MetaDefender Endpoint", "version": "4.2.1", "segment_ids": ["seg_006"], "uncertain": false},
+  "steps_taken": [
+    {"text": "Customer read the Endpoint log from a desktop that shows as unregistered.", "segment_ids": ["seg_007", "seg_008"]},
+    {"text": "Agent explained that the virtual desktop platform, the profile tool and the inspection proxy are third-party products outside OPSWAT's scope.", "segment_ids": ["seg_011", "seg_013"]}
+  ],
+  "findings": [
+    {"text": "The Endpoint log says registration failed because the certificate chain is not trusted; the issuer is the customer's SSL inspection proxy, not the management server.", "segment_ids": ["seg_008"]},
+    {"text": "Desktops are reset to a base image at every logoff and a separate profile tool restores the user profile from a file share at logon.", "segment_ids": ["seg_004"]},
+    {"text": "The profile tool attaches the profile a few seconds after the Endpoint service starts, so the settings file is missing at start.", "segment_ids": ["seg_010"]},
+    {"text": "The SSL inspection proxy appears to apply to every desktop in the pool; the customer is not fully sure.", "segment_ids": ["seg_010"], "uncertain": true},
+    {"text": "Endpoint appears to be behaving as designed, pending review of the full log.", "segment_ids": ["seg_013"], "uncertain": true}
+  ],
+  "next_actions": [
+    {"owner": "customer", "action": "Send the full Endpoint log from one affected desktop.", "due": "today", "segment_ids": ["seg_015", "seg_016"]},
+    {"owner": "customer", "action": "Pass the findings to the virtual desktop team and the network team.", "segment_ids": ["seg_014"]},
+    {"owner": "agent", "action": "Confirm the Endpoint side against the full log.", "segment_ids": ["seg_013", "seg_015"]},
+    {"owner": "agent", "action": "Send the documented guidance for non-persistent desktops.", "due": "end of day tomorrow", "segment_ids": ["seg_015"]}
+  ],
+  "open_questions": [
+    {"text": "Whether anything on the Endpoint side contributes beyond the third-party behaviour; to be confirmed from the full log.", "segment_ids": ["seg_013", "seg_015"], "uncertain": true}
+  ],
+  "third_party_components": [
+    {"name": "Customer's Citrix-style VDI platform", "role": "Delivers non-persistent virtual desktops that reset to a base image at every logoff.", "segment_ids": ["seg_004", "seg_011"]},
+    {"name": "User profile management tool", "role": "Restores the user profile from a file share at logon, a few seconds after the Endpoint service has started.", "segment_ids": ["seg_004", "seg_010"]},
+    {"name": "SSL inspection proxy", "role": "Sits between the desktops and the management server and presents its own certificate, so Endpoint registration fails on trust.", "segment_ids": ["seg_008", "seg_010"]}
+  ]
+}

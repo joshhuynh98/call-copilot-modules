@@ -1,0 +1,20 @@
+{
+  "rules": [
+    {"when_any": ["version"], "answer": "The customer said they upgraded Core from 5.10.1 to 5.13.2 on a Windows server, and the installer reported success (seg_004)."},
+    {"when_any": ["formal"], "answer": "Here is a more formal version:\n\n<email>\nDear Marcus,\n\nThank you for your time today. After the upgrade to 5.13.2, the Core service stops because its web service port, 8008, is already in use, apparently by an old Core process from before the upgrade. Please end that process (ID 4312), start the Core service and let me know whether it stays running. Please also send the installer log from last night. I will send the steps for stopping the services cleanly and consult our engineering team.\n\nKind regards,\nJordan Okafor\n</email>"},
+    {"when_any": ["try next", "next step", "what should i"], "answer": "Most likely next step: confirm the process on port 8008 is an old Core process, end it, then start the Core service and watch the log. Source: Core: starting and stopping the Core services https://docs.example-opswat.invalid/core/administration/start-stop-services. Related: SUP-51042 (old worker process left running after upgrade)."},
+    {"when_any": ["port 8008", "address already in use", "installer"], "tool_call": {"name": "search_docs", "arguments": {"query": "Core service stops after start, web service port already in use"}}, "answer": "The log shows the web service port is already in use. See https://docs.example-opswat.invalid/core/administration/start-stop-services for stopping and starting the services, and https://docs.example-opswat.invalid/core/configuration/web-service-port if the port has to be moved."},
+    {"when_any": ["known issue", "jira"], "tool_call": {"name": "search_jira", "arguments": {"query": "Core old worker process after upgrade service start"}}, "answer": "SUP-51042 describes the same pattern: the service stops seconds after start with an address-in-use error because an old worker process is still running. The documented workaround is to end the old process and restart."}
+  ],
+  "probes": [
+    {"question": "What did the customer say about the version?", "expect_contains": ["5.13.2"]},
+    {"question": "What should I try next?", "expect_contains": ["port 8008", "SUP-51042"]},
+    {"question": "Does the customer run Core in a cluster?", "expect_tool_before_unknown": true},
+    {"question": "Rewrite the email more formally.", "expect_contains": ["Dear Marcus"]}
+  ],
+  "demo_questions": [
+    "What did the customer say about the version?",
+    "What should I try next?",
+    "Rewrite the email more formally."
+  ]
+}

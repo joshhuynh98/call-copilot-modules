@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "case_id": "CASE-24101",
+    "customer_name": "Kestrel Freight Co.",
+    "customer_contact": "Dana Ortiz",
+    "agent_name": "Sam Rivera",
+    "product": "MetaDefender ICAP Server",
+    "product_version": null,
+    "call_start": "2026-03-10T14:00:00Z",
+    "call_end": "2026-03-10T14:21:00Z"
+  },
+  "segments": [
+    {"id": "seg_001", "speaker": "agent", "start_ms": 0, "end_ms": 6000, "text_original": "Hi Dana, this is Sam from OPSWAT support. I have your case about upload failures open. Can you walk me through what you're seeing?", "confidence": 0.98},
+    {"id": "seg_002", "speaker": "customer", "start_ms": 6500, "end_ms": 21000, "text_original": "Hi Sam. Our staff upload shipping documents through our portal, and anything bigger than about fifty megabytes fails after roughly a minute. Smaller files go through fine.", "confidence": 0.97},
+    {"id": "seg_003", "speaker": "agent", "start_ms": 21500, "end_ms": 27000, "text_original": "And the portal sends files to MetaDefender ICAP Server for scanning before saving them, right?", "confidence": 0.98},
+    {"id": "seg_004", "speaker": "customer", "start_ms": 27500, "end_ms": 36000, "text_original": "Yes, the portal is the ICAP client. The error it logs is an ICAP 500 response, and users just see an upload failed message.", "confidence": 0.96},
+    {"id": "seg_005", "speaker": "agent", "start_ms": 36500, "end_ms": 41000, "text_original": "Which version of ICAP Server are you running, and which Core is it connected to?", "confidence": 0.98},
+    {"id": "seg_006", "speaker": "customer", "start_ms": 41500, "end_ms": 52000, "text_original": "ICAP Server is 5.8.0, I just checked the dashboard. Core is 5.12.0. We upgraded both about two months ago.", "confidence": 0.95},
+    {"id": "seg_007", "speaker": "agent", "start_ms": 52500, "end_ms": 60000, "text_original": "Thanks. Do you have the ICAP Server log from one of the failed uploads? I'd like to see what it says around the failure time.", "confidence": 0.98},
+    {"id": "seg_008", "speaker": "customer", "start_ms": 60500, "end_ms": 78000, "text_original": "Give me a second. Okay, there's a line that says timed out waiting for Core scan result after 60 seconds, and then the 500 is returned to the portal right after that.", "confidence": 0.94},
+    {"id": "seg_009", "speaker": "agent", "start_ms": 78500, "end_ms": 90000, "text_original": "That fits. Large archives can take longer than 60 seconds to scan on Core, and ICAP Server gives up at its own timeout. Are the big files mostly zip archives?", "confidence": 0.97},
+    {"id": "seg_010", "speaker": "customer", "start_ms": 90500, "end_ms": 99000, "text_original": "Mostly, yes. Scanned shipping manifests bundled as zips, some with a few hundred pages inside.", "confidence": 0.96},
+    {"id": "seg_011", "speaker": "agent", "start_ms": 99500, "end_ms": 115000, "text_original": "Okay. I haven't confirmed the exact setting yet, so I'll check the documentation for the ICAP scan timeout and for the Core archive handling limits, and send you the steps.", "confidence": 0.98},
+    {"id": "seg_012", "speaker": "customer", "start_ms": 115500, "end_ms": 126000, "text_original": "Sounds good. Should I raise the timeout in the meantime? I don't want to break anything.", "confidence": 0.97},
+    {"id": "seg_013", "speaker": "agent", "start_ms": 126500, "end_ms": 140000, "text_original": "Hold off until you have my steps, so we change one thing at a time. Meanwhile, please send the full ICAP Server log for one failed upload and the size of your largest zip.", "confidence": 0.98},
+    {"id": "seg_014", "speaker": "customer", "start_ms": 140500, "end_ms": 148000, "text_original": "Will do. The largest one we've seen is around eighty megabytes. I'll send the log this afternoon.", "confidence": 0.96},
+    {"id": "seg_015", "speaker": "agent", "start_ms": 148500, "end_ms": 156000, "text_original": "Perfect. I'll follow up with the documented steps and what to test once you've applied them. Thanks, Dana.", "confidence": 0.98}
+  ]
+}

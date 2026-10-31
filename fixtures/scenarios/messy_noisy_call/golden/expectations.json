@@ -1,0 +1,21 @@
+{
+  "summary": {
+    "product": "MetaDefender Central Management",
+    "version": null,
+    "expect_uncertain": true,
+    "must_mention": ["disconnected", "Core", "7.5.2", "7.4.2"],
+    "next_action_owners": ["agent", "customer"],
+    "third_party_expected": false
+  },
+  "email": {
+    "must_mention": ["still to confirm", "next steps", "screenshot", "version"],
+    "must_not_mention": ["SUP-51207", "atlassian", "kb.internal"],
+    "third_party_scope_statement": false,
+    "required_public_links": ["https://docs.example-opswat.invalid/central-management/instances/managing-connected-instances"]
+  },
+  "recommendations": {
+    "top_action_contains": ["instances"],
+    "required_source_types": ["public_doc"],
+    "third_party_troubleshooting_allowed": false
+  }
+}

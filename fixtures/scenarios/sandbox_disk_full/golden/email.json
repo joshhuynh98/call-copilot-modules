@@ -1,0 +1,7 @@
+{
+  "subject": "Follow-up on your stalled MetaDefender Sandbox queue",
+  "body": "Hi Hannah,\n\nThanks for your time today. Here is a quick recap.\n\nWhat we found: your analysis queue is stalled because the data drive is about 96 percent full, and the Sandbox log reports not enough free disk space to start a new analysis. Old analysis reports and unused VM images are the likely cause.\n\nNext steps:\n1. You: send a breakdown of folder sizes on the data drive today.\n2. Me: send the documented cleanup steps and confirm what is safe to remove.\n3. Me: tell you what to check once the queue starts moving again.\n\nPlease don't delete anything by hand until you have my steps.\n\nMore background on managing disk usage: https://docs.example-opswat.invalid/sandbox/administration/disk-usage-retention",
+  "claims_needing_verification": [
+    {"claim": "Old analysis reports and unused VM images use most of the space on the data drive.", "reason": "The folder size breakdown has not been received yet.", "segment_ids": ["seg_008", "seg_013"]}
+  ]
+}

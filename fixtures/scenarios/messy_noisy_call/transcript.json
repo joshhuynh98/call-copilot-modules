@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "case_id": "CASE-24391",
+    "customer_name": "Larchmont Dental Group",
+    "customer_contact": "Wendell Okafor",
+    "agent_name": "Hana Kobayashi",
+    "product": "MetaDefender Central Management",
+    "product_version": null,
+    "call_start": "2026-04-02T15:00:00Z",
+    "call_end": "2026-04-02T15:22:00Z"
+  },
+  "segments": [
+    {"id": "seg_001", "speaker": "agent", "start_ms": 0, "end_ms": 8000, "text_original": "Hello Wendell, this is Hana from OPSWAT support. I have your case open about managed instances showing offline. Can you tell me what you are seeing?", "confidence": 0.97},
+    {"id": "seg_002", "speaker": "customer", "start_ms": 8500, "end_ms": 23000, "text_original": "Hi Hana. Yes, so since we upgraded meta defender central manage ment, two of our managed Core instances show as disconnected on the dashboard. The other three are fine.", "confidence": 0.74},
+    {"id": "seg_003", "speaker": "agent", "start_ms": 23500, "end_ms": 29000, "text_original": "Okay. Which version of Central Management are you running now?", "confidence": 0.95},
+    {"id": "seg_004", "speaker": "customer", "start_ms": 29500, "end_ms": 41000, "text_original": "Its version 7.5.2, I think. The log in paige shows it, I read it last, last week.", "text_translated": "It is version 7.5.2, I think. The login page shows it, I read it last week.", "confidence": 0.47},
+    {"id": "seg_005", "speaker": "agent", "start_ms": 41500, "end_ms": 50000, "text_original": "That matters for the next steps, so we will pin it down in a moment. Were all five instances connected before the upgrade?", "confidence": 0.94},
+    {"id": "seg_006", "speaker": "customer", "start_ms": 50500, "end_ms": 64000, "text_original": "Yes, all five were green for months. Sunday morning I upgraded the Meta Defender Central Managements server and after that two of them went grey, then red.", "confidence": 0.81},
+    {"id": "seg_007", "speaker": "agent", "start_ms": 64500, "end_ms": 69000, "text_original": "And what have you tried so far?", "confidence": 0.96},
+    {"id": "seg_008", "speaker": "customer", "start_ms": 69500, "end_ms": 90000, "text_original": "I restarted the central manage service, and, uh, no, I rebooted the whole server, the cert warning came up and I clicked past, then the licence sink failed on both.", "confidence": 0.52},
+    {"id": "seg_009", "speaker": "agent", "start_ms": 90500, "end_ms": 99000, "text_original": "Sorry to interrupt, which one was it, a service restart or a full server reboot? And on which machine did you--", "confidence": 0.9},
+    {"id": "seg_010", "speaker": "customer", "start_ms": 98500, "end_ms": 118000, "text_original": "--on the Central Management one. Well, actually, I think I only restarted the service. The reboot was on the Core box that is still green. Sorry, I mixed it up. And the version, hmm, it might be 7.4.2, 7.5.2 is the one I wanted to install.", "confidence": 0.82},
+    {"id": "seg_011", "speaker": "agent", "start_ms": 118500, "end_ms": 127000, "text_original": "No problem. Does the dashboard show an error message next to the two disconnected instances, or only the status?", "confidence": 0.95},
+    {"id": "seg_012", "speaker": "customer", "start_ms": 127500, "end_ms": 142000, "text_original": "There is a red tag that says, uh, auth fail ed or token expire, I cannot read it exact ly, the text is cut off on my screen.", "text_translated": "There is a red label that says authentication failed or token expired, I cannot read it exactly, because the text is cut on my screen.", "confidence": 0.41},
+    {"id": "seg_013", "speaker": "agent", "start_ms": 142500, "end_ms": 158000, "text_original": "Understood, I will not guess which one it is. Please send a screenshot of that label and the Central Management log from the upgrade day. I will check our documentation on reconnecting instances after an upgrade and search for known issues.", "confidence": 0.96},
+    {"id": "seg_014", "speaker": "customer", "start_ms": 158500, "end_ms": 172000, "text_original": "Okay, I will sent the screen shot. Also maybe it was Saturday not Sunday that I up graded, I have to look at my change ticket, sorry.", "text_translated": "Okay, I will send the screenshot. Also, perhaps it was Saturday and not Sunday that I upgraded, I must look at my change ticket, sorry.", "confidence": 0.57},
+    {"id": "seg_015", "speaker": "agent", "start_ms": 172500, "end_ms": 183000, "text_original": "No problem. When you send the screenshot, please also confirm the date and the exact version from the About page. I will follow up in writing with what I find.", "confidence": 0.96},
+    {"id": "seg_016", "speaker": "customer", "start_ms": 183500, "end_ms": 188000, "text_original": "Will do. Thanks Hana, sorry for the bad line.", "confidence": 0.88}
+  ]
+}

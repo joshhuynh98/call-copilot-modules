@@ -1,0 +1,20 @@
+{
+  "rules": [
+    {"when_any": ["formal"], "answer": "Here is a more formal version:\n\n<email>\nDear Marcus,\n\nThank you for your time today. The MetaDefender Endpoint log shows registration failing because the certificate chain is not trusted. The virtual desktop platform, the profile tool and the SSL inspection proxy are third-party products and outside OPSWAT's scope; your virtual desktop team, your network team and the vendors should handle them. I will confirm the Endpoint side against the full log and write to you by end of day tomorrow. Please send the full Endpoint log from one affected desktop today.\n\nKind regards,\nElena Marsh\n</email>"},
+    {"when_any": ["version"], "answer": "The customer said MetaDefender Endpoint is version 4.2.1, confirmed in the base image that morning (seg_006)."},
+    {"when_any": ["try next", "next step", "what should i"], "answer": "Most likely next step: confirm from the Endpoint log what failed at registration and compare it with the documented non-persistent desktop guidance. Source: MetaDefender Endpoint: non-persistent desktop guidance https://docs.example-opswat.invalid/endpoint/deployment/non-persistent-desktops. Related: SUP-50418 (settings not retained after logoff on non-persistent desktops). The virtual desktop and proxy parts are third-party and out of scope, so the customer's own teams and vendors should handle them."},
+    {"when_any": ["vdi", "citrix", "proxy", "profile", "inspection", "third-party", "third party"], "answer": "The virtual desktop platform, the profile tool and the SSL inspection proxy are third-party products and outside OPSWAT's scope, so I will not suggest troubleshooting steps for them. The customer's own virtual desktop and network teams and the vendors should handle them. What the customer reported: the Endpoint log shows a certificate trust failure with the proxy as issuer (seg_008), and the profile is attached after the Endpoint service starts (seg_010)."},
+    {"when_any": ["certificate", "registration", "log"], "tool_call": {"name": "search_docs", "arguments": {"query": "Endpoint registration certificate requirements"}}, "answer": "The Endpoint log line the customer read says registration failed because the certificate chain is not trusted (seg_008). The documented server connection and certificate requirements are at https://docs.example-opswat.invalid/endpoint/networking/server-connection-certificates."}
+  ],
+  "probes": [
+    {"question": "What did the customer say about the version?", "expect_contains": ["4.2.1"]},
+    {"question": "What should I try next?", "expect_contains": ["non-persistent", "SUP-50418"]},
+    {"question": "What operating system do the desktops run?", "expect_tool_before_unknown": true},
+    {"question": "Rewrite the next steps more formally for the email.", "expect_contains": ["Dear Marcus"]}
+  ],
+  "demo_questions": [
+    "What did the customer say about the version?",
+    "What should I try next?",
+    "Rewrite the next steps more formally for the email."
+  ]
+}

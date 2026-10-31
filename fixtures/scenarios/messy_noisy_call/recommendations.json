@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "case_id": "CASE-24391",
+  "recommendations": [
+    {
+      "id": "rec_1",
+      "rank": 1,
+      "title": "Review the documented steps for reconnecting managed instances after an upgrade",
+      "action": "Check the documented steps for reconnecting managed Core instances after a Central Management upgrade.",
+      "rationale": "Two of five instances went disconnected right after the upgrade while three stayed connected, which points at a per-instance connection state rather than the whole server.",
+      "sources": [
+        {"type": "public_doc", "label": "Central Management: managing connected instances", "url": "https://docs.example-opswat.invalid/central-management/instances/managing-connected-instances", "snippet": "How managed instances register, how their connection status is shown, and how to re-establish a connection."},
+        {"type": "internal_kb", "label": "KB: Instances disconnected after a Central Management upgrade", "url": "https://kb.internal.example.invalid/articles/cm-instances-disconnected-after-upgrade"}
+      ],
+      "confidence": 0.7,
+      "trigger_segment_ids": ["seg_002", "seg_006", "seg_012"]
+    },
+    {
+      "id": "rec_2",
+      "rank": 2,
+      "title": "Pin down the version and upgrade date before advising",
+      "action": "Get the exact version from the About page and the upgrade date so the right release notes and steps apply.",
+      "rationale": "The customer gave 7.5.2 and later said 7.4.2, and named both Sunday and Saturday as the upgrade day; the audio was poor in parts, so none of this is reliable yet.",
+      "sources": [
+        {"type": "public_doc", "label": "Central Management: release notes and upgrade paths", "url": "https://docs.example-opswat.invalid/central-management/releases/upgrade-paths", "snippet": "Release notes per version and supported upgrade paths."},
+        {"type": "past_case", "label": "CASE-23702: managed instance shown offline after upgrade", "url": "https://cases.internal.example.invalid/CASE-23702"}
+      ],
+      "confidence": 0.62,
+      "trigger_segment_ids": ["seg_004", "seg_010", "seg_014"]
+    },
+    {
+      "id": "rec_3",
+      "rank": 3,
+      "title": "Look for authentication or token errors in the upgrade-day log",
+      "action": "Look for authentication-failed or token-expired entries in the Central Management log from the upgrade day.",
+      "rationale": "The red label may read authentication failed or token expired, but the customer could not read it exactly; the log should show which one applies.",
+      "sources": [
+        {"type": "confluence", "label": "Triage checklist: managed instances disconnected after an upgrade", "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/21934"}
+      ],
+      "confidence": 0.5,
+      "trigger_segment_ids": ["seg_012", "seg_013"]
+    },
+    {
+      "id": "rec_4",
+      "rank": 4,
+      "title": "Known issue: license sync failing on managed instances after an upgrade",
+      "action": "Check whether the open ticket on license sync failures after an upgrade matches this case.",
+      "rationale": "The customer mentioned a certificate warning and a license sync failure on both instances; a similar report may point to a known cause or workaround.",
+      "sources": [
+        {"type": "jira", "label": "Central Management: managed instances disconnected after upgrade", "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-51207", "jira_key": "SUP-51207"},
+        {"type": "public_doc", "label": "Central Management: license synchronization", "url": "https://docs.example-opswat.invalid/central-management/licensing/synchronization"}
+      ],
+      "confidence": 0.35,
+      "trigger_segment_ids": ["seg_002", "seg_006", "seg_008"]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "docs": [
+    {"title": "MetaDefender Endpoint: non-persistent desktop guidance", "url": "https://docs.example-opswat.invalid/endpoint/deployment/non-persistent-desktops", "snippet": "Describes how registration and local settings behave when desktops are reset to a base image at logoff, and what to prepare in the base image.", "source_type": "public_doc"},
+    {"title": "MetaDefender Endpoint: server connection and certificate requirements", "url": "https://docs.example-opswat.invalid/endpoint/networking/server-connection-certificates", "snippet": "Lists the server addresses, ports and certificate trust the Endpoint client needs in order to register with the management server.", "source_type": "public_doc"},
+    {"title": "MetaDefender Endpoint: where settings and registration data are stored", "url": "https://docs.example-opswat.invalid/endpoint/configuration/local-settings-storage", "snippet": "Explains which settings and registration data the Endpoint client keeps locally and when they are read at service start.", "source_type": "public_doc"}
+  ],
+  "jira": [
+    {"title": "Endpoint: settings not retained after logoff on non-persistent desktops", "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-50418", "snippet": "Customer-side profile handling was the cause in the reported case; no product change needed, documentation note added.", "source_type": "jira", "jira_key": "SUP-50418"}
+  ],
+  "confluence": [
+    {"title": "Support scope: third-party virtual desktop and network products", "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/21877", "snippet": "Which products around Endpoint are outside OPSWAT support and how to word the scope statement to customers.", "source_type": "confluence"}
+  ],
+  "cases": [
+    {"title": "CASE-24012: Endpoint shows unregistered after base image reset", "url": "https://cases.internal.example.invalid/CASE-24012", "snippet": "Closed as third-party; the customer's own teams handled the platform side.", "source_type": "past_case"}
+  ],
+  "customers": [
+    {"customer": "Tideline Insurance Group", "history": [
+      {"title": "CASE-23190: Endpoint rollout planning for virtual desktops", "url": "https://cases.internal.example.invalid/CASE-23190", "snippet": "Rollout planned; base image prepared with Endpoint 4.2.1.", "source_type": "past_case"}
+    ]}
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "rules": [
+    {"when_any": ["version"], "answer": "The customer said they are on Sandbox 2.8.0, a single server install that has not been upgraded in about four months (seg_004)."},
+    {"when_any": ["formal"], "answer": "Here is a more formal version:\n\n<email>\nDear Hannah,\n\nThank you for your time today. Your analysis queue is stalled because the data drive is about 96 percent full, and the Sandbox log reports not enough free disk space to start a new analysis. Please send a breakdown of folder sizes on the data drive today, and refrain from deleting anything by hand until you receive the documented cleanup steps. I will send those steps and confirm which items are safe to remove.\n\nKind regards,\nLuca Bianchi\n</email>"},
+    {"when_any": ["try next", "next step", "what should i"], "answer": "Most likely next step: get the folder size breakdown from the customer, free space with the documented cleanup, then confirm the queue starts moving again. Source: Sandbox: managing disk usage and data retention https://docs.example-opswat.invalid/sandbox/administration/disk-usage-retention. Related: SUP-52718 (queued analyses not started when free disk space is low)."},
+    {"when_any": ["disk", "free space", "drive"], "tool_call": {"name": "search_docs", "arguments": {"query": "Sandbox queue stalled low free disk space cleanup"}}, "answer": "The log reports not enough free disk space to start a new analysis. The documented way to free space is described at https://docs.example-opswat.invalid/sandbox/administration/disk-usage-retention, and retention is covered at https://docs.example-opswat.invalid/sandbox/configuration/results-retention."},
+    {"when_any": ["vm image", "known issue", "jira"], "tool_call": {"name": "search_jira", "arguments": {"query": "Sandbox queue not started low free disk space"}}, "answer": "SUP-52718 covers queued analyses that do not start while free disk space is low; the queue resumes after space is freed. For the unused analysis VM images, see https://docs.example-opswat.invalid/sandbox/administration/vm-images."}
+  ],
+  "probes": [
+    {"question": "What did the customer say about the version?", "expect_contains": ["2.8.0"]},
+    {"question": "What should I try next?", "expect_contains": ["disk-usage-retention", "SUP-52718"]},
+    {"question": "Which operating system is the Sandbox server running on?", "expect_tool_before_unknown": true},
+    {"question": "Rewrite the email more formally.", "expect_contains": ["Dear Hannah"]}
+  ],
+  "demo_questions": [
+    "What did the customer say about the version?",
+    "What should I try next?",
+    "Rewrite the email more formally."
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "case_id": "CASE-24233",
+  "recommendations": [
+    {
+      "id": "rec_1",
+      "rank": 1,
+      "title": "Free the web service port held by the old process",
+      "action": "Confirm the process on port 8008 is an old Core process, end it, then start the Core service and watch the log.",
+      "rationale": "Log says the web service port is already in use and the customer found an old Core worker process on it, which fits the service stopping seconds after start.",
+      "sources": [
+        {"type": "public_doc", "label": "Core: starting and stopping the Core services", "url": "https://docs.example-opswat.invalid/core/administration/start-stop-services", "snippet": "How to stop, start and check the status of the Core services."},
+        {"type": "internal_kb", "label": "KB: Core service stops after upgrade, port already in use", "url": "https://kb.internal.example.invalid/articles/core-port-in-use-after-upgrade"}
+      ],
+      "confidence": 0.88,
+      "trigger_segment_ids": ["seg_006", "seg_010", "seg_013"]
+    },
+    {
+      "id": "rec_2",
+      "rank": 2,
+      "title": "Compare the upgrade steps with what was done last night",
+      "action": "Check the upgrade guide for stopping services before install and look for a failed stop in the installer log.",
+      "rationale": "The installer reported success, but an old process survived the upgrade; the installer log should show whether the old service was stopped cleanly.",
+      "sources": [
+        {"type": "public_doc", "label": "Core: upgrade guide", "url": "https://docs.example-opswat.invalid/core/installation/upgrade", "snippet": "Pre-upgrade checks, stopping services, running the installer and verifying the result."},
+        {"type": "confluence", "label": "Upgrading Core 5.x: pre-checks and rollback", "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/21877"}
+      ],
+      "confidence": 0.66,
+      "trigger_segment_ids": ["seg_004", "seg_008", "seg_011"]
+    },
+    {
+      "id": "rec_3",
+      "rank": 3,
+      "title": "Known issue: old worker process left running after upgrade",
+      "action": "Check whether the open ticket on a leftover process after upgrade applies to Core 5.13.2.",
+      "rationale": "A similar service-start failure is on file; it would confirm the workaround and whether a fix is planned.",
+      "sources": [
+        {"type": "jira", "label": "Core: old worker process left running after upgrade blocks service start", "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-51042", "jira_key": "SUP-51042"}
+      ],
+      "confidence": 0.47,
+      "trigger_segment_ids": ["seg_004", "seg_010"]
+    },
+    {
+      "id": "rec_4",
+      "rank": 4,
+      "title": "Fallback: move the web service to a free port",
+      "action": "If the port stays taken after the old process is gone, move the Core web service to a free port.",
+      "rationale": "Only needed if the conflict persists; changing the port also means updating any client that uses the old one.",
+      "sources": [
+        {"type": "public_doc", "label": "Core: changing the web service port", "url": "https://docs.example-opswat.invalid/core/configuration/web-service-port", "snippet": "How to move the Core web service to another port when the current one is not available."}
+      ],
+      "confidence": 0.3,
+      "trigger_segment_ids": ["seg_006", "seg_009"]
+    }
+  ]
+}

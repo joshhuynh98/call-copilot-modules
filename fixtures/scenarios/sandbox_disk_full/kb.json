@@ -1,0 +1,21 @@
+{
+  "docs": [
+    {"title": "Sandbox: managing disk usage and data retention", "url": "https://docs.example-opswat.invalid/sandbox/administration/disk-usage-retention", "snippet": "Which Sandbox data grows over time, how to check free space and how to free disk space safely.", "source_type": "public_doc"},
+    {"title": "Sandbox: analysis results retention", "url": "https://docs.example-opswat.invalid/sandbox/configuration/results-retention", "snippet": "Controls how long analysis results are kept before they are removed.", "source_type": "public_doc"},
+    {"title": "Sandbox: managing analysis VM images", "url": "https://docs.example-opswat.invalid/sandbox/administration/vm-images", "snippet": "How to list, update and remove the VM images used for analysis.", "source_type": "public_doc"}
+  ],
+  "jira": [
+    {"title": "Sandbox: queued analyses not started when free disk space is low", "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-52718", "snippet": "Queue stays stuck while free space is low and resumes after space is freed; docs note on the low-space behaviour pending.", "source_type": "jira", "jira_key": "SUP-52718"}
+  ],
+  "confluence": [
+    {"title": "Sandbox sizing and retention planning", "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/22346", "snippet": "Rule of thumb for storage growth per analysed file and recommended retention periods.", "source_type": "confluence"}
+  ],
+  "cases": [
+    {"title": "CASE-23918: Sandbox queue stalled, data drive nearly full", "url": "https://cases.internal.example.invalid/CASE-23918", "snippet": "Resolved by removing old results and unused VM images; queue resumed on its own.", "source_type": "past_case"}
+  ],
+  "customers": [
+    {"customer": "Redcliffe Insurance Group", "history": [
+      {"title": "CASE-22654: Sandbox 2.8.0 installation sizing", "url": "https://cases.internal.example.invalid/CASE-22654", "snippet": "Single-server install sized for a first-year volume; no retention period set.", "source_type": "past_case"}
+    ]}
+  ]
+}

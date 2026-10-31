@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "product": "MetaDefender Endpoint",
+    "version": "4.2.1",
+    "must_mention": ["non-persistent", "unregistered", "certificate", "third-party"],
+    "next_action_owners": ["agent", "customer"],
+    "third_party_expected": true
+  },
+  "email": {
+    "must_mention": ["third-party", "outside OPSWAT's scope", "next steps", "log"],
+    "must_not_mention": ["SUP-50418", "atlassian", "kb.internal"],
+    "third_party_scope_statement": true,
+    "required_public_links": ["https://docs.example-opswat.invalid/endpoint/deployment/non-persistent-desktops"]
+  },
+  "recommendations": {
+    "top_action_contains": ["log"],
+    "required_source_types": ["public_doc"],
+    "third_party_troubleshooting_allowed": false
+  }
+}

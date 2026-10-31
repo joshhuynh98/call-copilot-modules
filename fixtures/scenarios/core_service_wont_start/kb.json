@@ -1,0 +1,22 @@
+{
+  "docs": [
+    {"title": "Core: starting and stopping the Core services", "url": "https://docs.example-opswat.invalid/core/administration/start-stop-services", "snippet": "How to stop, start and check the status of the Core services, and what to verify before and after maintenance.", "source_type": "public_doc"},
+    {"title": "Core: upgrade guide", "url": "https://docs.example-opswat.invalid/core/installation/upgrade", "snippet": "Pre-upgrade checks, stopping services, running the installer and verifying the result.", "source_type": "public_doc"},
+    {"title": "Core: changing the web service port", "url": "https://docs.example-opswat.invalid/core/configuration/web-service-port", "snippet": "How to move the Core web service to another port when the current one is not available.", "source_type": "public_doc"}
+  ],
+  "jira": [
+    {"title": "Core: old worker process left running after upgrade blocks service start", "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-51042", "snippet": "Service stops seconds after start with an address-in-use error; workaround is to end the old process and restart. Fix under review.", "source_type": "jira", "jira_key": "SUP-51042"}
+  ],
+  "confluence": [
+    {"title": "Upgrading Core 5.x: pre-checks and rollback", "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/21877", "snippet": "Checklist for stopping services cleanly, verifying ports and reading the installer log after an upgrade.", "source_type": "confluence"}
+  ],
+  "cases": [
+    {"title": "CASE-23402: Core service stops after upgrade, port in use", "url": "https://cases.internal.example.invalid/CASE-23402", "snippet": "Resolved by ending a leftover process and restarting the Core service.", "source_type": "past_case"}
+  ],
+  "customers": [
+    {"customer": "Ashgrove Manufacturing Ltd.", "history": [
+      {"title": "CASE-23155: upgrade planning for Core 5.13.x", "url": "https://cases.internal.example.invalid/CASE-23155", "snippet": "Upgrade window agreed and pre-check list sent to the customer.", "source_type": "past_case"},
+      {"title": "CASE-21980: initial Core installation", "url": "https://cases.internal.example.invalid/CASE-21980", "snippet": "Installation completed without issues.", "source_type": "past_case"}
+    ]}
+  ]
+}

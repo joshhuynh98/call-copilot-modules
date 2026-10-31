@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "product": "MetaDefender ICAP Server",
+    "version": "5.8.0",
+    "must_mention": ["60 seconds", "zip", "Core"],
+    "next_action_owners": ["agent", "customer"],
+    "third_party_expected": false
+  },
+  "email": {
+    "must_mention": ["60 seconds", "next steps", "log"],
+    "must_not_mention": ["SUP-48211", "atlassian", "kb.internal"],
+    "third_party_scope_statement": false,
+    "required_public_links": ["https://docs.example-opswat.invalid/icap/configuration/scan-timeouts"]
+  },
+  "recommendations": {
+    "top_action_contains": ["timeout"],
+    "required_source_types": ["public_doc"],
+    "third_party_troubleshooting_allowed": false
+  }
+}

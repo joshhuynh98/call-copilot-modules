@@ -1,0 +1,21 @@
+{
+  "docs": [
+    {"title": "ICAP Server: configuring scan timeouts", "url": "https://docs.example-opswat.invalid/icap/configuration/scan-timeouts", "snippet": "The request timeout defines how long ICAP Server waits for a Core scan result before returning an error. Increase it for large archives.", "source_type": "public_doc"},
+    {"title": "Core: archive handling settings", "url": "https://docs.example-opswat.invalid/core/configuration/archive-handling", "snippet": "Limits for nested archives, extracted file count and total extracted size.", "source_type": "public_doc"},
+    {"title": "ICAP Server: supported ICAP clients and preview mode", "url": "https://docs.example-opswat.invalid/icap/integration/clients-preview", "snippet": "Preview mode lets an ICAP client send the first bytes of a file before deciding to send the rest.", "source_type": "public_doc"}
+  ],
+  "jira": [
+    {"title": "ICAP: 500 returned on uploads over 50 MB", "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-48211", "snippet": "Customer reports 500 on large uploads, resolved by raising the request timeout; docs update pending.", "source_type": "jira", "jira_key": "SUP-48211"}
+  ],
+  "confluence": [
+    {"title": "Sizing archive scans on Core 5.x", "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/20114", "snippet": "Rule of thumb for archive scan duration and recommended ICAP timeouts.", "source_type": "confluence"}
+  ],
+  "cases": [
+    {"title": "CASE-23877: large zip uploads fail via ICAP", "url": "https://cases.internal.example.invalid/CASE-23877", "snippet": "Resolved by increasing the ICAP request timeout to 300s.", "source_type": "past_case"}
+  ],
+  "customers": [
+    {"customer": "Kestrel Freight Co.", "history": [
+      {"title": "CASE-22310: upgrade to Core 5.12.0", "url": "https://cases.internal.example.invalid/CASE-22310", "snippet": "Upgrade completed two months ago without issues.", "source_type": "past_case"}
+    ]}
+  ]
+}

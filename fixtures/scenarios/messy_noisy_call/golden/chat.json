@@ -1,0 +1,20 @@
+{
+  "rules": [
+    {"when_any": ["formal"], "answer": "Here is a more formal version:\n\n<email>\nDear Wendell,\n\nThank you for your time today. The line was noisy, so I would like to confirm a few points before advising you. Please send a screenshot of the red label shown next to the disconnected instances and the Central Management log from the day of the upgrade. Please also confirm the exact version from the About page, the upgrade date, and whether you restarted only the service or the whole server. I will review the documentation and write to you with my findings.\n\nKind regards,\nHana Kobayashi\n</email>"},
+    {"when_any": ["version"], "answer": "Two versions were mentioned and they conflict: the customer first said 7.5.2 (seg_004, low audio confidence) and later said it might be 7.4.2, with 7.5.2 being the one they wanted to install (seg_010). Treat the version as unconfirmed until the customer reads it from the About page."},
+    {"when_any": ["try next", "next step", "what should i"], "answer": "Most likely next step: check the documented steps for reconnecting managed Core instances after a Central Management upgrade. Source: Central Management: managing connected instances https://docs.example-opswat.invalid/central-management/instances/managing-connected-instances. Related: SUP-51207 (managed instances disconnected after upgrade). First confirm the version and upgrade date, since the customer's account of both changed during the call."},
+    {"when_any": ["restart", "reboot", "what did they do", "what did the customer do"], "answer": "The customer's account of what they did changed: first a service restart, then a full server reboot, then a service restart only, with the reboot being on a Core machine that is still connected (seg_008, seg_010). Treat it as unconfirmed."},
+    {"when_any": ["error", "label", "license", "token"], "tool_call": {"name": "search_docs", "arguments": {"query": "managed instance disconnected authentication failed token expired"}}, "answer": "The customer could not read the red label exactly; it says either authentication failed or token expired (seg_012). They also said license sync failed on both instances (seg_008, low audio confidence). See https://docs.example-opswat.invalid/central-management/licensing/synchronization for how synchronization failures are shown."}
+  ],
+  "probes": [
+    {"question": "What version of Central Management is the customer running?", "expect_contains": ["7.5.2", "7.4.2"]},
+    {"question": "What should I try next?", "expect_contains": ["instances", "SUP-51207"]},
+    {"question": "Which cloud region is the customer hosted in?", "expect_tool_before_unknown": true},
+    {"question": "Rewrite the next steps more formally for the email.", "expect_contains": ["Dear Wendell"]}
+  ],
+  "demo_questions": [
+    "What version of Central Management is the customer running?",
+    "What should I try next?",
+    "Rewrite the next steps more formally for the email."
+  ]
+}

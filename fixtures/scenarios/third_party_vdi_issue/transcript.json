@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "case_id": "CASE-24377",
+    "customer_name": "Tideline Insurance Group",
+    "customer_contact": "Marcus Lindqvist",
+    "agent_name": "Elena Marsh",
+    "product": "MetaDefender Endpoint",
+    "product_version": null,
+    "call_start": "2026-03-17T09:30:00Z",
+    "call_end": "2026-03-17T09:49:00Z"
+  },
+  "segments": [
+    {"id": "seg_001", "speaker": "agent", "start_ms": 0, "end_ms": 8000, "text_original": "Good morning Marcus, this is Elena Marsh from OPSWAT technical support. I have your case about MetaDefender Endpoint open. Could you describe what you are seeing?", "confidence": 0.98},
+    {"id": "seg_002", "speaker": "customer", "start_ms": 8500, "end_ms": 25000, "text_original": "Good morning Elena. We rolled out MetaDefender Endpoint to our virtual desktops last month. Each morning many users show as unregistered in the management console, and the settings we pushed are gone after they log off and on again.", "confidence": 0.96},
+    {"id": "seg_003", "speaker": "agent", "start_ms": 25500, "end_ms": 32000, "text_original": "To make sure I understand the setup, are the desktops persistent, or are they reset after each session?", "confidence": 0.98},
+    {"id": "seg_004", "speaker": "customer", "start_ms": 32500, "end_ms": 47000, "text_original": "They are non-persistent. We run a Citrix-style VDI platform, and every logoff resets the desktop to the base image. A separate profile tool then restores the user profile from a file share at logon.", "confidence": 0.95},
+    {"id": "seg_005", "speaker": "agent", "start_ms": 47500, "end_ms": 52000, "text_original": "Thank you. Which version of Endpoint is installed in the base image?", "confidence": 0.98},
+    {"id": "seg_006", "speaker": "customer", "start_ms": 52500, "end_ms": 58000, "text_original": "Version 4.2.1. I confirmed it in the image this morning.", "confidence": 0.97},
+    {"id": "seg_007", "speaker": "agent", "start_ms": 58500, "end_ms": 64000, "text_original": "Could you read me what the Endpoint log says on a desktop that shows as unregistered?", "confidence": 0.98},
+    {"id": "seg_008", "speaker": "customer", "start_ms": 64500, "end_ms": 82000, "text_original": "Yes. There is a line saying the registration request failed because the certificate chain is not trusted. The issuer is our network team's SSL inspection proxy, not your management server.", "confidence": 0.94},
+    {"id": "seg_009", "speaker": "agent", "start_ms": 82500, "end_ms": 91000, "text_original": "That tells us the connection is being intercepted before it reaches the management server. Is that inspection applied to every desktop in the pool?", "confidence": 0.97},
+    {"id": "seg_010", "speaker": "customer", "start_ms": 91500, "end_ms": 109000, "text_original": "As far as I know, yes, every desktop. The network team manages it. I also noticed the profile tool attaches the profile a few seconds after the Endpoint service starts, so the settings file is not there yet when the service comes up.", "confidence": 0.93},
+    {"id": "seg_011", "speaker": "agent", "start_ms": 109500, "end_ms": 126000, "text_original": "Thank you, that is useful. The virtual desktop platform, the profile tool and the inspection proxy are all third-party products. They are outside OPSWAT's scope, so I cannot troubleshoot them. What I can do is confirm how Endpoint behaves and send you our documented guidance.", "confidence": 0.98},
+    {"id": "seg_012", "speaker": "customer", "start_ms": 126500, "end_ms": 133000, "text_original": "Understood. So you are saying this is not a defect in Endpoint?", "confidence": 0.96},
+    {"id": "seg_013", "speaker": "agent", "start_ms": 133500, "end_ms": 152000, "text_original": "From what you have read to me, Endpoint appears to be behaving as designed. It rejects a certificate it does not trust, and it starts before the profile is available. I will confirm that against the full log. The platform behaviour is for your virtual desktop vendor and your network team.", "confidence": 0.97},
+    {"id": "seg_014", "speaker": "customer", "start_ms": 152500, "end_ms": 163000, "text_original": "Okay. I will pass this to our virtual desktop team and the network team. Should I still send you the full Endpoint log?", "confidence": 0.96},
+    {"id": "seg_015", "speaker": "agent", "start_ms": 163500, "end_ms": 174000, "text_original": "Yes please, the full log from one affected desktop. I will send the documented guidance for non-persistent desktops by end of day tomorrow.", "confidence": 0.98},
+    {"id": "seg_016", "speaker": "customer", "start_ms": 174500, "end_ms": 180000, "text_original": "I will send the log today. Thank you, Elena.", "confidence": 0.97}
+  ]
+}

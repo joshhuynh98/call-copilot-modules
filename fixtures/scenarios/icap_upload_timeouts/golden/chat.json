@@ -1,0 +1,66 @@
+{
+  "rules": [
+    {
+      "when_any": [
+        "version"
+      ],
+      "answer": "The customer said ICAP Server is 5.8.0 (read from their dashboard) and Core is 5.12.0, both upgraded about two months ago (seg_006)."
+    },
+    {
+      "when_any": [
+        "formal"
+      ],
+      "answer": "Here is a more formal version:\n\n<email>\nDear Dana,\n\nThank you for your time today. The upload failures occur because the ICAP Server stops waiting for the scan result after 60 seconds. I will send you the documented configuration steps shortly. In the meantime, please send the full ICAP Server log for one failed upload and the size of your largest zip archive.\n\nKind regards,\nSam Rivera\n</email>"
+    },
+    {
+      "when_any": [
+        "try next",
+        "next step",
+        "what should i"
+      ],
+      "answer": "Most likely next step: have the customer raise the ICAP scan timeout from 60s to 300s and retest with the 80 MB zip. Source: ICAP Server: configuring scan timeouts https://docs.example-opswat.invalid/icap/configuration/scan-timeouts. Related: SUP-48211 (500 on uploads over 50 MB)."
+    },
+    {
+      "when_any": [
+        "timeout"
+      ],
+      "tool_call": {
+        "name": "search_docs",
+        "arguments": {
+          "query": "ICAP scan timeout"
+        }
+      },
+      "answer": "The ICAP Server request timeout controls how long it waits for Core. See https://docs.example-opswat.invalid/icap/configuration/scan-timeouts for the documented setting."
+    }
+  ],
+  "probes": [
+    {
+      "question": "What did the customer say about the version?",
+      "expect_contains": [
+        "5.8.0"
+      ]
+    },
+    {
+      "question": "What should I try next?",
+      "expect_contains": [
+        "timeout",
+        "SUP-48211"
+      ]
+    },
+    {
+      "question": "Does the customer use a custom firewall rule for the portal?",
+      "expect_tool_before_unknown": true
+    },
+    {
+      "question": "Rewrite the next steps more formally for the email.",
+      "expect_contains": [
+        "Dear Dana"
+      ]
+    }
+  ],
+  "demo_questions": [
+    "What did the customer say about the version?",
+    "What should I try next?",
+    "Rewrite the next steps more formally for the email."
+  ]
+}

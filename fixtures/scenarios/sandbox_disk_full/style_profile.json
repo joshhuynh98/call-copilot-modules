@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "agent_id": "agent_luca",
+  "name": "Luca Bianchi",
+  "tone": "friendly, upbeat and concise; first names; one idea per sentence; contractions are fine",
+  "preferred_language": "en",
+  "glossary": [
+    {"term": "Sandbox", "preferred": "MetaDefender Sandbox"},
+    {"term": "issue", "preferred": "problem", "avoid": "issue"},
+    {"term": "disk full", "preferred": "low disk space"}
+  ],
+  "sample_emails": [
+    "Hi Greg,\n\nGood to speak with you today. Quick recap below.\n\nWhat we saw: the reports queue was backing up because the server was short on memory.\n\nNext steps:\n1. You: send the memory graph for the last week.\n2. Me: check the sizing guide and reply with a recommendation.\n\nThanks,\nLuca"
+  ],
+  "signature": "Thanks,\nLuca Bianchi\nOPSWAT Support Engineer"
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "case_id": "CASE-24297",
+  "recommendations": [
+    {
+      "id": "rec_1",
+      "rank": 1,
+      "title": "Find what fills the data drive and free space with the documented cleanup",
+      "action": "Get the folder size breakdown, free space with the documented cleanup, then confirm the queue starts moving again.",
+      "rationale": "Log says there is not enough free disk space to start a new analysis and the drive is 96% full, which matches a stalled queue with normal CPU and memory.",
+      "sources": [
+        {"type": "public_doc", "label": "Sandbox: managing disk usage and data retention", "url": "https://docs.example-opswat.invalid/sandbox/administration/disk-usage-retention", "snippet": "Which Sandbox data grows over time and how to free disk space safely."},
+        {"type": "internal_kb", "label": "KB: Sandbox queue stalls when the data drive is nearly full", "url": "https://kb.internal.example.invalid/articles/sandbox-queue-stalled-low-disk"}
+      ],
+      "confidence": 0.9,
+      "trigger_segment_ids": ["seg_002", "seg_006", "seg_010"]
+    },
+    {
+      "id": "rec_2",
+      "rank": 2,
+      "title": "Shorten the retention of old analysis results",
+      "action": "Review how long analysis reports are kept and set a retention period that fits the customer's reporting needs.",
+      "rationale": "The customer has kept every report for over a year, up to 14 months old, so space will fill again unless retention is limited.",
+      "sources": [
+        {"type": "public_doc", "label": "Sandbox: analysis results retention", "url": "https://docs.example-opswat.invalid/sandbox/configuration/results-retention", "snippet": "Controls how long analysis results are kept before they are removed."},
+        {"type": "confluence", "label": "Sandbox sizing and retention planning", "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/22346"}
+      ],
+      "confidence": 0.62,
+      "trigger_segment_ids": ["seg_008", "seg_014"]
+    },
+    {
+      "id": "rec_3",
+      "rank": 3,
+      "title": "Check which unused analysis VM images can be removed",
+      "action": "Identify the unused analysis VM images left from testing and confirm with engineering which are safe to remove.",
+      "rationale": "Several old VM images from earlier testing are still stored; the customer is worried about deleting something Sandbox still needs.",
+      "sources": [
+        {"type": "public_doc", "label": "Sandbox: managing analysis VM images", "url": "https://docs.example-opswat.invalid/sandbox/administration/vm-images", "snippet": "How to list, update and remove the VM images used for analysis."},
+        {"type": "jira", "label": "Sandbox: queued analyses not started when free disk space is low", "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-52718", "jira_key": "SUP-52718"}
+      ],
+      "confidence": 0.5,
+      "trigger_segment_ids": ["seg_008", "seg_011", "seg_012"]
+    }
+  ]
+}

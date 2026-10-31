@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "product": "MetaDefender Sandbox",
+    "version": "2.8.0",
+    "must_mention": ["96 percent", "free disk space", "VM images"],
+    "next_action_owners": ["agent", "customer"],
+    "third_party_expected": false
+  },
+  "email": {
+    "must_mention": ["96 percent", "next steps", "folder sizes"],
+    "must_not_mention": ["SUP-52718", "atlassian", "kb.internal"],
+    "third_party_scope_statement": false,
+    "required_public_links": ["https://docs.example-opswat.invalid/sandbox/administration/disk-usage-retention"]
+  },
+  "recommendations": {
+    "top_action_contains": ["folder size", "cleanup"],
+    "required_source_types": ["public_doc"],
+    "third_party_troubleshooting_allowed": false
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "case_id": "CASE-24297",
+    "customer_name": "Redcliffe Insurance Group",
+    "customer_contact": "Hannah Brandt",
+    "agent_name": "Luca Bianchi",
+    "product": "MetaDefender Sandbox",
+    "product_version": null,
+    "call_start": "2026-04-08T15:00:00Z",
+    "call_end": "2026-04-08T15:19:00Z"
+  },
+  "segments": [
+    {"id": "seg_001", "speaker": "agent", "start_ms": 0, "end_ms": 6500, "text_original": "Hi Hannah, this is Luca from OPSWAT support. I have your case about the Sandbox queue not moving. What are you seeing?", "confidence": 0.98},
+    {"id": "seg_002", "speaker": "customer", "start_ms": 7000, "end_ms": 21500, "text_original": "Hi Luca. Since yesterday morning, new files submitted to Sandbox just sit in the queue. Nothing starts analysing, and the queue count keeps climbing. Last week it was fine.", "confidence": 0.97},
+    {"id": "seg_003", "speaker": "agent", "start_ms": 22000, "end_ms": 27500, "text_original": "Thanks. Which version of MetaDefender Sandbox is this, and is it a single server?", "confidence": 0.98},
+    {"id": "seg_004", "speaker": "customer", "start_ms": 28000, "end_ms": 39000, "text_original": "We are on Sandbox 2.8.0, a single server install. We haven't upgraded in about four months.", "confidence": 0.96},
+    {"id": "seg_005", "speaker": "agent", "start_ms": 39500, "end_ms": 48000, "text_original": "Okay. Have you noticed anything on the server itself, like CPU, memory or disk? A stalled queue is often a resource problem.", "confidence": 0.98},
+    {"id": "seg_006", "speaker": "customer", "start_ms": 48500, "end_ms": 60000, "text_original": "Now that you mention it, our monitoring page shows the data drive at ninety-six percent full. CPU and memory look normal.", "confidence": 0.95},
+    {"id": "seg_007", "speaker": "agent", "start_ms": 60500, "end_ms": 69000, "text_original": "That could well be it. Do you know what is using the space on that drive? For example old analysis results, or virtual machine images?", "confidence": 0.97},
+    {"id": "seg_008", "speaker": "customer", "start_ms": 69500, "end_ms": 88000, "text_original": "Not exactly. The drive is about five hundred gigabytes. We have kept every analysis report since we installed, so over a year. And there are several analysis VM images from earlier testing that nobody removed.", "confidence": 0.94},
+    {"id": "seg_009", "speaker": "agent", "start_ms": 88500, "end_ms": 96000, "text_original": "Did you see any error in the Sandbox log, like a message about disk space or failing to start an analysis?", "confidence": 0.98},
+    {"id": "seg_010", "speaker": "customer", "start_ms": 96500, "end_ms": 110000, "text_original": "Yes. There is a line saying not enough free disk space to start a new analysis, and it repeats every time a job is picked up.", "confidence": 0.95},
+    {"id": "seg_011", "speaker": "agent", "start_ms": 110500, "end_ms": 128000, "text_original": "That matches. Sandbox seems to hold back new analyses when free space gets too low, so the queue stalls. I have not confirmed the exact threshold, so I will check the documentation and our cleanup guidance.", "confidence": 0.97},
+    {"id": "seg_012", "speaker": "customer", "start_ms": 128500, "end_ms": 139000, "text_original": "Can I just delete the old VM images and reports to free up space? I am worried about removing something Sandbox still needs.", "confidence": 0.97},
+    {"id": "seg_013", "speaker": "agent", "start_ms": 139500, "end_ms": 156000, "text_original": "Please don't delete anything by hand yet. First send me a breakdown of folder sizes on the data drive, so we can see what is using the space, and I will send you the documented cleanup steps.", "confidence": 0.98},
+    {"id": "seg_014", "speaker": "customer", "start_ms": 156500, "end_ms": 165000, "text_original": "Okay. I can export the folder sizes today. The oldest reports go back about fourteen months.", "confidence": 0.96},
+    {"id": "seg_015", "speaker": "agent", "start_ms": 165500, "end_ms": 176000, "text_original": "Great. Once I have that, I will confirm which items are safe to remove and what to check when the queue starts moving again. Thanks, Hannah.", "confidence": 0.98}
+  ]
+}

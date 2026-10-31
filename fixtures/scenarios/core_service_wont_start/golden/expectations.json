@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "product": "MetaDefender Core",
+    "version": "5.13.2",
+    "must_mention": ["port 8008", "old Core", "upgrade"],
+    "next_action_owners": ["agent", "customer", "opswat_other"],
+    "third_party_expected": false
+  },
+  "email": {
+    "must_mention": ["8008", "next steps", "log"],
+    "must_not_mention": ["SUP-51042", "atlassian", "kb.internal"],
+    "third_party_scope_statement": false,
+    "required_public_links": ["https://docs.example-opswat.invalid/core/administration/start-stop-services"]
+  },
+  "recommendations": {
+    "top_action_contains": ["port 8008", "old Core process"],
+    "required_source_types": ["public_doc"],
+    "third_party_troubleshooting_allowed": false
+  }
+}

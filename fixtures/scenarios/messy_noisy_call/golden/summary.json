@@ -1,0 +1,27 @@
+{
+  "plain_language": "The customer says two of five managed Core instances show as disconnected since an upgrade of MetaDefender Central Management. The line was noisy and the customer changed their account several times, so the version (7.5.2 or 7.4.2), the upgrade day and what was restarted are all unconfirmed. Hana will check the documentation and known issues once the customer sends a screenshot, the log and the exact version.",
+  "issue": {"text": "Since the upgrade of MetaDefender Central Management, two of the five managed Core instances show as disconnected on the dashboard; the other three are fine.", "segment_ids": ["seg_002", "seg_006"]},
+  "product": {"name": "MetaDefender Central Management", "version": null, "segment_ids": ["seg_004", "seg_010"], "uncertain": true},
+  "steps_taken": [
+    {"text": "Customer restarted the Central Management service, or possibly rebooted the whole server; the account changed during the call and the reboot may have been on a Core instance that is still connected.", "segment_ids": ["seg_008", "seg_010"], "uncertain": true},
+    {"text": "Customer clicked past a certificate warning at some point after the upgrade.", "segment_ids": ["seg_008"], "uncertain": true}
+  ],
+  "findings": [
+    {"text": "All five instances were connected for months before the upgrade; two then went grey and later red.", "segment_ids": ["seg_006"]},
+    {"text": "The dashboard shows a red label on the affected instances that reads either authentication failed or token expired; the customer could not read it exactly.", "segment_ids": ["seg_012"], "uncertain": true},
+    {"text": "License synchronization reportedly failed on both affected instances.", "segment_ids": ["seg_008"], "uncertain": true},
+    {"text": "The upgrade was done on a Sunday morning, or possibly on the Saturday; the customer will check their change record.", "segment_ids": ["seg_006", "seg_014"], "uncertain": true}
+  ],
+  "next_actions": [
+    {"owner": "customer", "action": "Send a screenshot of the red label and the Central Management log from the upgrade day.", "segment_ids": ["seg_013", "seg_014"]},
+    {"owner": "customer", "action": "Confirm the exact version from the About page and the upgrade date from the change record.", "segment_ids": ["seg_014", "seg_015"]},
+    {"owner": "agent", "action": "Check the documentation on reconnecting instances after an upgrade and search for known issues.", "segment_ids": ["seg_013"]},
+    {"owner": "agent", "action": "Follow up in writing with the findings.", "segment_ids": ["seg_015"]}
+  ],
+  "open_questions": [
+    {"text": "Which Central Management version is installed: the customer said 7.5.2 first and later said it might be 7.4.2.", "segment_ids": ["seg_004", "seg_010"], "uncertain": true},
+    {"text": "Whether the customer restarted only the service or rebooted the whole server, and on which machine.", "segment_ids": ["seg_008", "seg_010"], "uncertain": true},
+    {"text": "What the red label says exactly, and whether it relates to authentication, an expired token or something else.", "segment_ids": ["seg_012"], "uncertain": true}
+  ],
+  "third_party_components": []
+}

@@ -1,0 +1,21 @@
+{
+  "docs": [
+    {"title": "Central Management: managing connected instances", "url": "https://docs.example-opswat.invalid/central-management/instances/managing-connected-instances", "snippet": "How managed instances register, how their connection status is shown, and how to re-establish a connection.", "source_type": "public_doc"},
+    {"title": "Central Management: release notes and upgrade paths", "url": "https://docs.example-opswat.invalid/central-management/releases/upgrade-paths", "snippet": "Release notes per version and supported upgrade paths.", "source_type": "public_doc"},
+    {"title": "Central Management: license synchronization", "url": "https://docs.example-opswat.invalid/central-management/licensing/synchronization", "snippet": "How managed instances receive their license from Central Management and what a failed synchronization looks like.", "source_type": "public_doc"}
+  ],
+  "jira": [
+    {"title": "Central Management: managed instances disconnected after upgrade", "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-51207", "snippet": "Reports of some managed instances showing disconnected after an upgrade; investigation ongoing, license sync failures seen on affected instances.", "source_type": "jira", "jira_key": "SUP-51207"}
+  ],
+  "confluence": [
+    {"title": "Triage checklist: managed instances disconnected after an upgrade", "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/21934", "snippet": "What to confirm first (exact versions on both sides, upgrade date, what was restarted) and which log entries to look at.", "source_type": "confluence"}
+  ],
+  "cases": [
+    {"title": "CASE-23702: managed instance shown offline after upgrade", "url": "https://cases.internal.example.invalid/CASE-23702", "snippet": "Resolved after confirming the exact versions on both sides and following the documented reconnect steps.", "source_type": "past_case"}
+  ],
+  "customers": [
+    {"customer": "Larchmont Dental Group", "history": [
+      {"title": "CASE-23410: Central Management initial deployment", "url": "https://cases.internal.example.invalid/CASE-23410", "snippet": "Five Core instances registered; deployment completed without issues.", "source_type": "past_case"}
+    ]}
+  ]
+}

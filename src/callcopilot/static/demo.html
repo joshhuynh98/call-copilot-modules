@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Call Copilot demo</title>
+<style>
+body{font:14px system-ui,sans-serif;margin:0;display:grid;grid-template-columns:1fr 1fr;height:100vh}
+section{padding:12px 16px;overflow:auto;border-right:1px solid #ddd}
+h2{margin:.2em 0 .5em;font-size:15px} pre{white-space:pre-wrap;background:#f6f6f6;padding:8px;border-radius:6px}
+.seg b{display:inline-block;width:70px} .rec{border:1px solid #ddd;border-radius:6px;padding:6px 8px;margin:6px 0}
+#chatlog{min-height:200px} .me{color:#06c} .tool{color:#888;font-size:12px} button{margin-right:6px}
+input[type=text]{width:70%}
+</style></head><body>
+<section>
+  <h2>Call <select id="scn"></select></h2>
+  <div id="transcript"></div>
+  <h2>Recommendations</h2><div id="recs"></div>
+</section>
+<section>
+  <button id="bsum">Summary</button><button id="bmail">Email draft</button> <span id="status"></span>
+  <h2>Summary</h2><pre id="summary">-</pre>
+  <h2>Email draft (review before sending)</h2><pre id="email">-</pre>
+  <h2>Chat</h2><div id="chatlog"></div>
+  <input id="q" type="text" placeholder="Ask about this call..."><button id="send">Send</button>
+</section>
+<script>
+const $=id=>document.getElementById(id); let ctx=null, mid="demo";
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+async function api(path,opts){const r=await fetch(path,opts); if(!r.ok){throw new Error((await r.json().catch(()=>({}))).error||r.statusText)} return r.json()}
+const put=()=>api(`/v1/meetings/${mid}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(ctx)});
+async function load(id){
+  ctx=await api(`/v1/scenarios/${id}`); await put();
+  $("transcript").innerHTML=ctx.transcript.segments.map(s=>`<div class=seg><b>${s.speaker}</b>${esc(s.text_translated||s.text_original)}</div>`).join("");
+  $("recs").innerHTML=ctx.recommendations.recommendations.map(r=>`<div class=rec><b>${r.rank}. ${esc(r.action)}</b><br>${esc(r.rationale)}<br>`+
+    r.sources.map(s=>`<a href="${esc(s.url)}" target=_blank>[${s.type}${s.jira_key?" "+s.jira_key:""}] ${esc(s.label)}</a>`).join("<br>")+"</div>").join("");
+  $("summary").textContent="-"; $("email").textContent="-"; $("chatlog").innerHTML="";
+}
+async function busy(btn,fn){$("status").textContent="working...";try{await fn()}catch(e){$("status").textContent="error: "+e.message;return}$("status").textContent=""}
+$("bsum").onclick=()=>busy(0,async()=>{const s=await api(`/v1/meetings/${mid}/summary`,{method:"POST"});$("summary").textContent=JSON.stringify(s,null,2)});
+$("bmail").onclick=()=>busy(0,async()=>{const d=await api(`/v1/meetings/${mid}/email`,{method:"POST"});
+  $("email").textContent="Subject: "+d.subject+"\n\n"+d.body+(d.claims_needing_verification.length?"\n\n-- Verify --\n"+d.claims_needing_verification.map(c=>"* "+c.claim).join("\n"):"")+(d.warnings.length?"\n\n-- Warnings --\n"+d.warnings.join("\n"):"")});
+async function send(){
+  const q=$("q").value.trim(); if(!q) return; $("q").value="";
+  const log=$("chatlog"); log.insertAdjacentHTML("beforeend",`<p class=me>You: ${esc(q)}</p>`);
+  const p=document.createElement("p"); p.textContent="Copilot: "; log.appendChild(p);
+  const r=await fetch(`/v1/meetings/${mid}/chat`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:q})});
+  const reader=r.body.getReader(), dec=new TextDecoder(); let buf="";
+  for(;;){const {done,value}=await reader.read(); if(done)break; buf+=dec.decode(value,{stream:true});
+    let i; while((i=buf.indexOf("\n\n"))>=0){const raw=buf.slice(0,i); buf=buf.slice(i+2);
+      const type=(raw.match(/^event: (.*)$/m)||[])[1], data=JSON.parse((raw.match(/^data: (.*)$/m)||[,"{}"])[1]);
+      if(type==="token") p.textContent+=data.text;
+      else if(type==="tool_call") log.insertAdjacentHTML("beforeend",`<div class=tool>searching ${data.tool.tool}${data.tool.forced?" (guard)":""}...</div>`);
+      else if(type==="done") p.textContent="Copilot: "+data.result.text;
+      else if(type==="error") p.textContent+=" [error: "+data.error+"]";}}
+}
+$("send").onclick=send; $("q").onkeydown=e=>{if(e.key==="Enter")send()};
+$("scn").onchange=e=>load(e.target.value);
+api("/v1/scenarios").then(l=>{$("scn").innerHTML=l.map(s=>`<option value="${s.id}">${s.id} - ${esc(s.customer)}</option>`).join(""); load(l[0].id)}).catch(e=>$("status").textContent=e.message);
+</script></body></html>
