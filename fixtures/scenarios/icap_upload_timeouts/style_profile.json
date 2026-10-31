@@ -16,7 +16,7 @@
     }
   ],
   "sample_emails": [
-    "Hi Priya,\n\nIssue: the service stopped right after starting.\n\nWhat we found:\n- A port conflict on 8008 blocked the service.\n\nNext steps:\n1. You: free port 8008 and restart the service.\n2. Me: send the upgrade notes.\n\nBest,\nSam"
+    "Hi Priya,\n\nThanks for your time on the call today.\n\nIssue: the service stopped right after starting.\n\nWhat we found:\n- A port conflict on 8008 blocked the service.\n\nNext steps:\n1. You: free port 8008 and restart the service.\n2. Me: send the upgrade notes.\n\nBest,\nSam"
   ],
   "signature": "Best regards,\nSam Rivera\nOPSWAT Technical Support"
 }

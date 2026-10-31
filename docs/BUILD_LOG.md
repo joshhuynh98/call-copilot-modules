@@ -1,13 +1,13 @@
 # Build log
 
-Status as of 2026-10-31 (week 1 of 2), after the summary rework (organise first, concise style). Nothing here has been run against a real AI server yet; all runs use the fake provider.
+Status as of 2026-10-31 (week 1 of 2), after the summary rework, the warmer-email change and the demo page upgrade. Nothing here has been run against a real AI server yet; all runs use the fake provider.
 
 ## Done
 
 | Step | What | Evidence |
 |---|---|---|
 | Scaffold | `pyproject.toml`, `.env.example` (all blank), `.gitignore` (`.env`, `.venv`, eval reports), README | `uv pip install -e ".[dev]"` |
-| Contracts | Transcript, RecommendationSet, StyleProfile/EmailOptions, tool Protocol + SearchHit, MeetingSummary, EmailDraft, ChatEvent/ChatResult, MeetingContext; JSON Schema exported to `contracts/` | `callcopilot schemas` |
+| Contracts | Transcript, RecommendationSet, StyleProfile, tool Protocol + SearchHit, MeetingSummary, EmailDraft, ChatEvent/ChatResult, MeetingContext; JSON Schema exported to `contracts/` | `callcopilot schemas` |
 | LLM layer | env-only config with fail-fast errors, `LLMClient` interface, OpenAI-compatible + Anthropic adapters (retries, streaming, tool calls), fake provider, structured output + repair loop | `tests/test_config.py`, `test_adapters.py`, `test_structured_and_redaction.py` |
 | Safety | reversible redaction wrapper (incl. streams), untrusted-content wrapping | tests as above |
 | Fixtures | 5 fictional scenarios with transcript, recommendations, style profile, KB, goldens: ICAP timeouts, Core won't start, Sandbox disk full, third-party VDI/SSL-inspection issue, noisy call | `tests/test_fixtures.py` |
@@ -20,8 +20,10 @@ Status as of 2026-10-31 (week 1 of 2), after the summary rework (organise first,
 | Docs | plan, architecture, 6 ADRs, integration guide, email rules, chatbot, recommendations spec, evals | `docs/` |
 | Front-end support | CORS via `COPILOT_CORS_ORIGINS`; optional `COPILOT_API_KEY` (`X-API-Key`, constant-time compare) on all `/v1` routes; uniform `{"error"}` responses; `POST /v1/email/check` and `/v1/meetings/{id}/email/check` (`review_email`: checks, fixes, `suggested_body`) for edited drafts; OpenAPI spec exported to `contracts/openapi.json`; demo page sends the key; [frontend.md](frontend.md) | `tests/test_frontend_support.py` |
 | Summary rework (ADR 0007) | Two-stage summary: organise (group, dedupe, order, resolve corrections, triage recommendations) then write; new grouped shape (`issues`, `before_call`, `in_call`, next steps by owner; `schema_version` 2.0); shared `style_rules` prompt in summary, email and chat; soft style checks and a `clarity_conciseness` judge rubric; email layout with labelled sections and plain-text dash/numbered lists; goldens rewritten without filler | `tests/test_organise_and_style.py` |
+| Warmer emails, no settings | One brief thank-you is expected in every customer email (soft `courtesy_line` check instead of a filler ban). The AI decides the format and length (`email@v4`, `style_rules@v3`); the thank-you, length and meeting-offer options were removed from the contracts, API, CLI and demo page, leaving fixed guardrails (220-word ceiling, never a meeting offer) | `tests/test_organise_and_style.py` |
+| Demo page | `demo.html` now renders the JSON: grouped summary with owner columns, uncertainty badges, clickable timestamp chips that highlight the transcript line, recommendations cheatsheet (set-aside items greyed), editable email with live checks and one-click fix, streaming chat with copy-ready email boxes; URL shortcuts for demos; checked with headless-browser screenshots | `tests/test_frontend_support.py` (page only calls endpoints that exist) |
 
-159 tests pass offline.
+165 tests pass offline.
 
 ## Fixes found while building (kept for context)
 

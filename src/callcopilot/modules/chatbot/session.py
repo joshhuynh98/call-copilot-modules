@@ -19,7 +19,7 @@ from callcopilot import policy
 from callcopilot.checks import EmailPolicy, enforce_email_text
 from callcopilot.checks.chat import looks_like_unknown
 from callcopilot.contracts import (
-    ChatEvent, ChatResult, Citation, EmailOptions, MeetingContext, SearchHit, SourceType, ToolBackend, ToolUse,
+    ChatEvent, ChatResult, Citation, MeetingContext, SearchHit, SourceType, ToolBackend, ToolUse,
 )
 from callcopilot.llm import LLMClient, LLMConfig, LLMError, Message, Tag, ToolCall, ToolSpec
 from callcopilot.llm.structured import extract_json
@@ -140,7 +140,7 @@ class ChatSession:
         )
 
     def _email_policy(self) -> EmailPolicy:
-        return EmailPolicy.build(self.meeting.email_options or EmailOptions(), self.meeting.recommendations, self.meeting.summary)
+        return EmailPolicy.build(self.meeting.recommendations, self.meeting.summary)
 
     def _run_tool(self, name: str, args: dict, use: ToolUse) -> str:
         try:

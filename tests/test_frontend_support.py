@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import callcopilot.api as api
-from callcopilot.contracts import EmailOptions, MeetingSummary
+from callcopilot.contracts import MeetingSummary
 from callcopilot.checks import EmailPolicy
 from callcopilot.llm import LLMConfig
 from callcopilot.modules.email import review_email
@@ -87,7 +87,7 @@ def test_errors_share_one_shape():
 # -- email re-check -------------------------------------------------------------------------------------
 def test_review_email_function(icap):
     summary = MeetingSummary(**icap.golden_summary.model_dump())
-    pol = EmailPolicy.build(EmailOptions(), icap.recommendations, summary)
+    pol = EmailPolicy.build(icap.recommendations, summary)
     ok = review_email("Recap", GOOD_BODY, pol)
     assert ok.passed and ok.suggested_body is None and ok.fixes == []
     bad = review_email("Recap", BAD_BODY, pol)
@@ -105,11 +105,10 @@ def test_stateless_email_check_endpoint(icap):
     assert bad["passed"] is False and bad["suggested_body"] and any(not x["passed"] for x in bad["checks"])
 
 
-def test_email_check_respects_options_signature_and_summary(icap, vdi):
+def test_email_check_respects_signature_and_summary(icap, vdi):
     c = app(cors_origins=[], api_key="")
     offer = "Hi Dana,\n\nHappy to jump on a quick call."
     assert c.post("/v1/email/check", json={"subject": "s", "body": offer}).json()["passed"] is False
-    assert c.post("/v1/email/check", json={"subject": "s", "body": offer, "options": {"allow_meeting_offer": True}}).json()["passed"] is True
     sig = "Best,\nSam " + "word " * 200
     long = c.post("/v1/email/check", json={"subject": "s", "body": "Hi Dana,\n\nShort.\n\n" + sig, "signature": sig}).json()
     assert next(x for x in long["checks"] if x["name"] == "length_limit")["passed"]  # signature not counted
@@ -156,3 +155,16 @@ def test_chat_stream_works_through_cors_and_key():
     r = c.post("/v1/meetings/m/chat", json={"message": "What did the customer say about the version?"}, headers=h)
     assert r.headers["access-control-allow-origin"] == ORIGIN and r.headers["content-type"].startswith("text/event-stream")
     assert "event: done" in r.text and "5.8.0" in r.text
+
+
+def test_demo_page_only_calls_endpoints_that_exist():
+    """The static demo page must stay in sync with the API it renders."""
+    import re
+    page = (api.STATIC / "demo.html").read_text(encoding="utf-8")
+    called = {re.sub(r"\$\{[^}]*\}", "x", m).split("?")[0] for m in re.findall(r"/v1/[A-Za-z0-9_/${}.\-]+", page)}
+    routes = [re.compile("^" + re.sub(r"\{[^}]+\}", "[^/]+", path) + "$") for path in api.create_app(FAKE, cors_origins=[], api_key="").openapi()["paths"]]
+    assert called and all(any(r.match(p) for r in routes) for p in called), sorted(called)
+    for needle in ("Draft email", "Generate summary", "The AI chooses the format and length", "Outside OPSWAT's scope", "Support (you)", "data-copy"):
+        assert needle in page
+    for gone in ("o-courtesy", "o-meeting", "o-words", "allow meeting offer", "max words"):  # the AI decides; no email settings in the UI
+        assert gone not in page

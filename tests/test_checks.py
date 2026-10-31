@@ -3,18 +3,18 @@ import pytest
 
 from callcopilot import policy
 from callcopilot.checks import EmailPolicy, check_email, check_recommendations, enforce_email_text, failed
-from callcopilot.contracts import EmailDraft, EmailOptions, MeetingSummary, Source, SourceType
+from callcopilot.contracts import EmailDraft, MeetingSummary, Source, SourceType
 
 DOC = "https://docs.example-opswat.invalid/icap/configuration/scan-timeouts"
 
 
-def pol(icap, **opts):
+def pol(icap):
     summary = MeetingSummary(**icap.golden_summary.model_dump())
-    return EmailPolicy.build(EmailOptions(**opts), icap.recommendations, summary)
+    return EmailPolicy.build(icap.recommendations, summary)
 
 
-def failed_names(icap, body, subject="Follow-up", **opts):
-    return {r.name for r in failed(check_email(EmailDraft(subject=subject, body=body), pol(icap, **opts)))}
+def failed_names(icap, body, subject="Follow-up"):
+    return {r.name for r in failed(check_email(EmailDraft(subject=subject, body=body), pol(icap)))}
 
 
 GOOD = "Hi Dana,\n\nThanks for your time today.\n\nNext steps:\n1. Me: send the steps.\n2. You: send the log."
@@ -58,8 +58,9 @@ def test_plain_references_to_the_call_are_not_offers(icap, sentence):
     assert "no_meeting_offer" not in failed_names(icap, f"Hi Dana,\n\n{sentence}")
 
 
-def test_meeting_offer_allowed_only_when_option_set(icap):
-    assert "no_meeting_offer" not in failed_names(icap, "Hi Dana,\n\nHappy to jump on a quick call.", allow_meeting_offer=True)
+def test_meeting_offers_are_never_allowed_there_is_no_setting(icap):
+    offer = "Hi Dana," + chr(10) + chr(10) + "Happy to jump on a quick call."
+    assert "no_meeting_offer" in failed_names(icap, offer)
 
 
 def test_jira_key_detection_ignores_common_tokens():
@@ -78,7 +79,7 @@ def test_enforce_makes_a_bad_email_pass(icap):
 
 def test_third_party_scope_and_troubleshooting(vdi):
     summary = MeetingSummary(**vdi.golden_summary.model_dump())
-    p = EmailPolicy.build(EmailOptions(), vdi.recommendations, summary)
+    p = EmailPolicy.build(vdi.recommendations, summary)
     no_scope = {r.name for r in failed(check_email(EmailDraft(subject="s", body="Hi Marcus,\n\nWe looked at the logs."), p))}
     assert "third_party_scope_statement" in no_scope
     bad = {r.name for r in failed(check_email(EmailDraft(subject="s", body="Hi Marcus,\n\nThe proxy is third-party and outside OPSWAT's scope.\nPlease restart the proxy and update the firewall."), p))}

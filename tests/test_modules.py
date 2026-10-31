@@ -2,7 +2,7 @@
 import json
 
 from callcopilot.checks import EmailPolicy, check_email, failed
-from callcopilot.contracts import EmailOptions, MeetingSummary
+from callcopilot.contracts import MeetingSummary
 from callcopilot.llm import LLMConfig
 from callcopilot.modules.email import draft_email
 from callcopilot.modules.summary import summarize
@@ -45,7 +45,7 @@ def test_summary_marks_low_confidence_segments(icap):
 def test_email_on_fake_provider_passes_all_checks(icap):
     s = run_summary(icap.transcript, FAKE)
     d = run_email(icap.transcript, s, icap.style, icap.recommendations, FAKE)
-    pol = EmailPolicy.build(EmailOptions(), icap.recommendations, s)
+    pol = EmailPolicy.build(icap.recommendations, s)
     assert not failed(check_email(d, pol, signature=icap.style.signature))
     assert d.body.endswith(icap.style.signature) and d.links_used and not d.warnings and d.meta["repairs"] == 0
 
@@ -55,13 +55,13 @@ BAD = json.dumps({
     "body": "Hi Dana,\n\n**Next steps**\n- See SUP-48211 and https://opswat-internal.atlassian.example.invalid/browse/SUP-48211\n"
             "Let's schedule a call to review.\nDocs: https://docs.example-opswat.invalid/invented",
 })
-GOOD = json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nNext steps:\n1. Me: send the steps.\n2. You: send the log."})
+GOOD = json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nThank you for your time during the meeting.\n\nNext steps:\n1. Me: send the steps.\n2. You: send the log."})
 
 
-def build(icap, replies, summary=None, **opts):
+def build(icap, replies, summary=None):
     summary = summary or MeetingSummary(**icap.golden_summary.model_dump())
     llm = ScriptedLLM(replies)
-    return draft_email(icap.transcript, summary, icap.style, icap.recommendations, llm, EmailOptions(**opts)), llm
+    return draft_email(icap.transcript, summary, icap.style, icap.recommendations, llm), llm
 
 
 def test_email_repair_loop_fixes_a_bad_first_draft(icap):
@@ -72,14 +72,14 @@ def test_email_repair_loop_fixes_a_bad_first_draft(icap):
 
 def test_email_enforcement_is_last_resort_and_tells_the_agent(icap):
     d, _ = build(icap, [BAD])
-    pol = EmailPolicy.build(EmailOptions(), icap.recommendations, MeetingSummary(**icap.golden_summary.model_dump()))
+    pol = EmailPolicy.build(icap.recommendations, MeetingSummary(**icap.golden_summary.model_dump()))
     assert not failed(check_email(d, pol, signature=icap.style.signature))
     assert any("ticket id" in w for w in d.warnings) and any("meeting" in w for w in d.warnings)
 
 
 def test_email_gets_scope_statement_when_model_forgets(vdi):
     summary = MeetingSummary(**vdi.golden_summary.model_dump())
-    forgot = json.dumps({"subject": "Recap", "body": "Hi Marcus,\n\nNext steps:\n1. Me: review the log."})
+    forgot = json.dumps({"subject": "Recap", "body": "Hi Marcus,\n\nThank you for your time during the meeting.\n\nNext steps:\n1. Me: review the log."})
     d = draft_email(vdi.transcript, summary, vdi.style, vdi.recommendations, ScriptedLLM([forgot]))
     assert "outside OPSWAT's scope" in d.body and any("out-of-scope statement" in w for w in d.warnings)
 
@@ -100,10 +100,9 @@ def test_prompt_never_receives_internal_ids_or_links(icap):
     assert "https://docs.example-opswat.invalid/icap/configuration/scan-timeouts" in prompt
 
 
-def test_email_prompt_respects_meeting_option(icap):
-    _, off = build(icap, [GOOD])
-    _, on = build(icap, [GOOD], allow_meeting_offer=True)
-    assert "Do NOT offer" in off.calls[0][0][0].content and "Do NOT offer" not in on.calls[0][0][0].content
+def test_email_prompt_always_forbids_meeting_offers(icap):
+    _, llm = build(icap, [GOOD])
+    assert "Do NOT offer, suggest or request a call, meeting, demo or screen share" in llm.calls[0][0][0].content
 
 
 def test_redaction_in_the_loop_restores_names(icap):
@@ -111,7 +110,7 @@ def test_redaction_in_the_loop_restores_names(icap):
 
     def echo(messages):
         seen.append("\n".join(m.content for m in messages))
-        return json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nNext steps:\n1. Me: send the steps."})
+        return json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nThank you for your time during the meeting.\n\nNext steps:\n1. Me: send the steps."})
 
     llm = make_llm(LLMConfig(provider="openai", url="x", model="m"), icap.transcript)
     llm.inner = ScriptedLLM([echo])

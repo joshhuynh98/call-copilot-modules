@@ -203,26 +203,6 @@
       "title": "EmailDraft",
       "type": "object"
     },
-    "EmailOptions": {
-      "properties": {
-        "allow_meeting_offer": {
-          "default": false,
-          "description": "Default off: no offering/requesting calls or meetings.",
-          "title": "Allow Meeting Offer",
-          "type": "boolean"
-        },
-        "max_words": {
-          "default": 150,
-          "description": "Target body length, excluding signature.",
-          "maximum": 600,
-          "minimum": 40,
-          "title": "Max Words",
-          "type": "integer"
-        }
-      },
-      "title": "EmailOptions",
-      "type": "object"
-    },
     "GlossaryEntry": {
       "properties": {
         "term": {
@@ -842,17 +822,6 @@
       "anyOf": [
         {
           "$ref": "#/$defs/StyleProfile"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
-    },
-    "email_options": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/EmailOptions"
         },
         {
           "type": "null"

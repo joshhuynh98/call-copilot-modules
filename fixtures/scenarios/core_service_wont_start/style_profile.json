@@ -21,7 +21,7 @@
     }
   ],
   "sample_emails": [
-    "Hello Elaine,\n\nIssue: the service stopped after starting.\n\nWhat we found:\n- The licence on the server had expired.\n\nNext steps:\n1. You: apply the renewed licence file and restart the service.\n2. Me: confirm the expiry date on our side.\n\nKind regards,\nJordan"
+    "Hello Elaine,\n\nThank you for your time during the meeting.\n\nIssue: the service stopped after starting.\n\nWhat we found:\n- The licence on the server had expired.\n\nNext steps:\n1. You: apply the renewed licence file and restart the service.\n2. Me: confirm the expiry date on our side.\n\nKind regards,\nJordan"
   ],
   "signature": "Kind regards,\nJordan Okafor\nSenior Support Engineer, OPSWAT"
 }

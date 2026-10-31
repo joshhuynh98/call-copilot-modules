@@ -5,9 +5,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 import callcopilot.api as api
+from callcopilot import policy
 from callcopilot.checks import EmailPolicy, check_email, enforce_email_text, failed
 from callcopilot.checks.style import check_style
-from callcopilot.contracts import CallBrief, EmailDraft, EmailOptions, MeetingSummary, RecNote
+from callcopilot.contracts import CallBrief, EmailDraft, MeetingSummary, RecNote
 from callcopilot.llm import LLMConfig
 from callcopilot.modules.chatbot import ChatSession
 from callcopilot.modules.email import draft_email
@@ -21,6 +22,7 @@ from callcopilot.contracts import MeetingContext
 from conftest import ScriptedLLM
 
 FAKE = LLMConfig(provider="fake")
+nl = chr(10)
 
 
 def brief_of(sc, **over):
@@ -83,7 +85,7 @@ def test_messy_recommendations_are_triaged(icap):
 def test_dropped_recommendations_still_forbid_their_ticket_ids(icap):
     kept = triage_recommendations(icap.recommendations, [RecNote(rec_id="rec_3", relevant=False)])
     assert [r.id for r in kept.recommendations] == ["rec_1", "rec_2"]
-    assert "SUP-48211" in EmailPolicy.build(EmailOptions(), icap.recommendations, None, kept).jira_keys
+    assert "SUP-48211" in EmailPolicy.build(icap.recommendations, None, kept).jira_keys
 
 
 def test_triage_edge_cases(icap):
@@ -106,7 +108,7 @@ def test_style_checks_are_soft_and_catch_filler_and_long_bullets():
 
 
 def test_dash_and_numbered_lists_are_plain_text(icap):
-    pol = EmailPolicy.build(EmailOptions(), icap.recommendations, None)
+    pol = EmailPolicy.build(icap.recommendations, None)
     body = "Hi Dana,\n\nWhat we found:\n- one\n- two\n\nNext steps:\n1. Me: a\n2. You: b"
     assert "no_markdown" not in {r.name for r in failed(check_email(EmailDraft(subject="s", body=body), pol))}
     clean, fixes = enforce_email_text("Hi,\n\n* one\n+ two\n• three\n- four", pol)
@@ -115,12 +117,64 @@ def test_dash_and_numbered_lists_are_plain_text(icap):
 
 def test_email_repair_asks_to_remove_filler(icap):
     s = MeetingSummary(**icap.golden_summary.model_dump())
-    filler = json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nThanks for your time today. Here is a quick recap.\n\nNext steps:\n1. Me: send the steps."})
-    clean = json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nNext steps:\n1. Me: send the steps."})
+    filler = json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nThank you for your time during the meeting. Here is a quick recap.\n\nNext steps:\n1. Me: send the steps."})
+    clean = json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nThank you for your time during the meeting.\n\nNext steps:\n1. Me: send the steps."})
     llm = ScriptedLLM([filler, clean])
     d = draft_email(icap.transcript, s, icap.style, icap.recommendations, llm)
-    assert "Thanks for your time" not in d.body and d.meta["repairs"] == 1 and not d.warnings
+    assert "quick recap" not in d.body and "Thank you for your time" in d.body  # filler goes, the one courtesy stays
+    assert d.meta["repairs"] == 1 and not d.warnings
     assert "no_filler" in llm.calls[1][0][-1].content
+
+
+def test_one_courtesy_is_expected_wherever_the_model_puts_it(icap):
+    pol = EmailPolicy.build(icap.recommendations, None)
+
+    def courtesy(body):
+        return next(r for r in check_email(EmailDraft(subject="s", body=body), pol) if r.name == "courtesy_line")
+
+    opening = "Hi Dana," + nl + nl + "Thank you for your time during the meeting." + nl + nl + "Next steps:" + nl + "1. Me: a"
+    closing = "Hi Dana," + nl + nl + "Next steps:" + nl + "1. Me: a" + nl + nl + "Thanks again for your time today."
+    none = "Hi Dana," + nl + nl + "Next steps:" + nl + "1. Me: a"
+    twice = "Hi Dana," + nl + nl + "Thanks for your time. Thank you for speaking with me." + nl + nl + "Next steps:" + nl + "1. Me: a"
+    assert courtesy(opening).passed and courtesy(closing).passed  # placement is the model's call
+    assert not courtesy(none).passed and courtesy(none).soft and not courtesy(twice).passed
+    for phrase in ("Thank you for your time during the meeting.", "Thanks for your time today.", "Thank you for taking the time to join.",
+                   "Thank you for speaking with me today.", "Thanks again for your time.", "I appreciate your time."):
+        assert policy.COURTESY_RE.search(phrase), phrase
+    assert not policy.FILLER_RE.search("Thank you for your time during the meeting.")  # a courtesy, not filler
+    assert policy.FILLER_RE.search("Thank you for your patience.") and policy.FILLER_RE.search("Thanks for reaching out.")
+
+
+def test_the_model_decides_format_and_length_there_are_no_email_settings(icap):
+    s = MeetingSummary(**icap.golden_summary.model_dump())
+    llm = ScriptedLLM([json.dumps({"subject": "Recap", "body": "Hi Dana," + nl + nl + "Thank you for your time during the meeting." + nl + nl + "Next steps:" + nl + "1. Me: send the steps."})])
+    draft_email(icap.transcript, s, icap.style, icap.recommendations, llm)
+    system = llm.calls[0][0][0].content
+    for principle in ("YOU DECIDE THE FORMAT AND THE LENGTH", "Informative", "Courteous", "Concise", "ONE brief line", "never exceed 220"):
+        assert principle in system, principle
+    assert "{{" not in system  # every placeholder was filled
+    import inspect
+    from callcopilot import contracts
+    from callcopilot.pipeline import run_email
+    assert not hasattr(contracts, "EmailOptions") and "options" not in inspect.signature(draft_email).parameters
+    assert "options" not in inspect.signature(run_email).parameters
+    assert "email_options" not in contracts.MeetingContext.model_fields
+
+
+def test_length_ceiling_is_hard_and_target_is_soft(icap):
+    pol = EmailPolicy.build(icap.recommendations, None)
+    def results(n):
+        body = "Hi Dana," + nl + nl + "Thank you for your time." + nl + nl + (("word " * 30).strip() + "." + nl + nl) * (n // 30)
+        return {r.name: r for r in check_email(EmailDraft(subject="s", body=body), pol)}
+    r = results(120)
+    assert r["length_limit"].passed and r["target_length"].passed
+    r = results(180)  # longer than most emails need: a warning, not a failure
+    assert r["length_limit"].passed and not r["target_length"].passed and r["target_length"].soft
+    assert not results(240)["length_limit"].passed  # past the ceiling: hard failure
+
+def test_summary_and_chat_stay_free_of_courtesies(icap):
+    result = next(r for r in check_style("Thank you for your time during the meeting.") if r.name == "courtesy_line")
+    assert not result.passed and result.soft  # default (summary, chat): a thank-you is not wanted
 
 
 @pytest.mark.parametrize("sid", list_scenarios())
@@ -128,8 +182,8 @@ def test_goldens_follow_the_style_rules(sid):
     sc = load_scenario(sid)
     summary = MeetingSummary(**sc.golden_summary.model_dump())
     text = summary.plain_language + "\n" + "\n".join(f"- {c.text}" for c in summary.all_claims())
-    for body in (text, sc.golden_email.body):
-        bad = [str(r) for r in check_style(body) if not r.passed]
+    for body, courtesy in ((text, False), (sc.golden_email.body, True)):  # the email has its one thank-you line
+        bad = [str(r) for r in check_style(body, courtesy_line=courtesy) if not r.passed]
         assert not bad, bad
     assert len(summary.plain_language.split()) <= 60
 

@@ -10,7 +10,7 @@ from callcopilot.checks import EmailPolicy, check_chat_turn, check_email, check_
 from callcopilot.checks.base import CheckResult
 from callcopilot.checks.chat import SEARCH_TOOLS
 from callcopilot.checks.summary import must_mention
-from callcopilot.contracts import EmailOptions, MeetingContext, MeetingSummary
+from callcopilot.contracts import MeetingContext, MeetingSummary
 from callcopilot.llm import LLMConfig
 from callcopilot.modules.chatbot import ChatSession
 from callcopilot.paths import REPO_ROOT
@@ -65,7 +65,7 @@ def _summary_section(sc: Scenario, summary: MeetingSummary) -> list[CheckResult]
 
 
 def _email_section(sc: Scenario, summary: MeetingSummary, draft) -> list[CheckResult]:
-    pol = EmailPolicy.build(EmailOptions(), sc.recommendations, summary)
+    pol = EmailPolicy.build(sc.recommendations, summary)
     out = check_email(draft, pol, signature=sc.style.signature)
     exp = sc.expectations["email"]
     low = draft.body.lower()
@@ -99,7 +99,7 @@ def _chat_section(sc: Scenario, summary: MeetingSummary, draft, recs, config: LL
             checks.append(CheckResult("probe_triggers_search", searched, [] if searched else ["no search tool was called"]))
         email_blocks = [b for b in __import__("re").findall(r"<email>(.*?)</email>", result.text, flags=__import__("re").S)]
         for b in email_blocks:
-            pol = EmailPolicy.build(EmailOptions(), recs, summary)
+            pol = EmailPolicy.build(recs, summary)
             from callcopilot.contracts import EmailDraft
             checks += [CheckResult(f"email_block_{c.name}", c.passed, c.details) for c in
                        check_email(EmailDraft(subject="x", body=b.strip()), pol) if c.name in

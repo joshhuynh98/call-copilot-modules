@@ -21,7 +21,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from callcopilot.checks import EmailPolicy, check_recommendations
 from callcopilot.contracts import (
-    EmailDraft, EmailOptions, MeetingContext, MeetingSummary, RecommendationSet, StyleProfile, Transcript,
+    EmailDraft, MeetingContext, MeetingSummary, RecommendationSet, StyleProfile, Transcript,
 )
 from callcopilot.llm import ConfigError, LLMConfig, LLMError, load_config, load_dotenv
 from callcopilot.modules.chatbot import ChatSession
@@ -43,7 +43,6 @@ class EmailRequest(BaseModel):
     style_profile: StyleProfile
     recommendations: RecommendationSet | None = None
     summary: MeetingSummary | None = None  # generated if omitted
-    options: EmailOptions | None = None
 
 
 class EmailCheckRequest(BaseModel):
@@ -52,8 +51,7 @@ class EmailCheckRequest(BaseModel):
     body: str
     recommendations: RecommendationSet | None = None  # defines which links are allowed
     summary: MeetingSummary | None = None  # enables the third-party scope check
-    options: EmailOptions | None = None
-    signature: str = ""  # not counted towards the word limit
+    signature: str = ""  # not counted towards the length ceiling
 
 
 class MeetingEmailCheckRequest(BaseModel):
@@ -68,10 +66,6 @@ class EvaluateRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-
-
-class MeetingEmailRequest(BaseModel):
-    options: EmailOptions | None = None
 
 
 def _origins_from_env() -> list[str]:
@@ -130,11 +124,11 @@ def create_app(config: LLMConfig | None = None, backend=None, *, cors_origins: l
     def email(req: EmailRequest):
         llm = make_llm(cfg(), req.transcript)
         s = req.summary or run_summary(req.transcript, cfg(), llm, req.recommendations)
-        return run_email(req.transcript, s, req.style_profile, req.recommendations, cfg(), req.options, llm)
+        return run_email(req.transcript, s, req.style_profile, req.recommendations, cfg(), llm)
 
     @router.post("/v1/email/check", response_model=EmailReview)
     def email_check(req: EmailCheckRequest):
-        pol = EmailPolicy.build(req.options or EmailOptions(), req.recommendations, req.summary)
+        pol = EmailPolicy.build(req.recommendations, req.summary)
         return review_email(req.subject, req.body, pol, req.signature)
 
     @router.post("/v1/recommendations/evaluate")
@@ -162,20 +156,19 @@ def create_app(config: LLMConfig | None = None, backend=None, *, cors_origins: l
         return ctx.summary
 
     @router.post("/v1/meetings/{meeting_id}/email", response_model=EmailDraft)
-    def meeting_email(meeting_id: str, req: MeetingEmailRequest | None = None):
+    def meeting_email(meeting_id: str):
         ctx = meeting(meeting_id)
         if ctx.style_profile is None:
             raise HTTPException(422, "This meeting has no style_profile; PUT it with one first.")
         llm = make_llm(cfg(), ctx.transcript)
         ctx.summary = ctx.summary or run_summary(ctx.transcript, cfg(), llm, ctx.recommendations)
-        ctx.email_options = (req.options if req else None) or ctx.email_options
-        ctx.email_draft = run_email(ctx.transcript, ctx.summary, ctx.style_profile, ctx.recommendations, cfg(), ctx.email_options, llm)
+        ctx.email_draft = run_email(ctx.transcript, ctx.summary, ctx.style_profile, ctx.recommendations, cfg(), llm)
         return ctx.email_draft
 
     @router.post("/v1/meetings/{meeting_id}/email/check", response_model=EmailReview)
     def meeting_email_check(meeting_id: str, req: MeetingEmailCheckRequest):
         ctx = meeting(meeting_id)
-        pol = EmailPolicy.build(ctx.email_options or EmailOptions(), ctx.recommendations, ctx.summary)
+        pol = EmailPolicy.build(ctx.recommendations, ctx.summary)
         return review_email(req.subject, req.body, pol, ctx.style_profile.signature if ctx.style_profile else "")
 
     @router.post("/v1/meetings/{meeting_id}/chat")

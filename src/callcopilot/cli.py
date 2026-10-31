@@ -5,7 +5,7 @@ import argparse
 import os
 import sys
 
-from callcopilot.contracts import EmailOptions, MeetingContext, RecommendationSet, StyleProfile, Transcript
+from callcopilot.contracts import MeetingContext, RecommendationSet, StyleProfile, Transcript
 from callcopilot.llm import ConfigError, LLMError, load_config, load_dotenv, load_judge_config
 from callcopilot.render import render_cheatsheet, render_email, render_summary
 
@@ -80,8 +80,7 @@ def cmd_email(args):
     cfg = _config(args)
     t, recs, style, _ = _load_inputs(args)
     summary = run_summary(t, cfg, recommendations=recs)
-    opts = EmailOptions(allow_meeting_offer=args.allow_meeting_offer, max_words=args.max_words)
-    d = run_email(t, summary, _need_style(style), recs, cfg, opts)
+    d = run_email(t, summary, _need_style(style), recs, cfg)
     print(d.model_dump_json(indent=2) if args.json else render_email(d))
 
 
@@ -193,8 +192,6 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--json", action="store_true")
     sp = add("email", cmd_email, "draft the follow-up email", inputs=True)
     sp.add_argument("--json", action="store_true")
-    sp.add_argument("--allow-meeting-offer", action="store_true")
-    sp.add_argument("--max-words", type=int, default=150)
     sp = add("chat", cmd_chat, "chat about a call (interactive, or -q to ask and exit)", inputs=True)
     sp.add_argument("-q", "--question", action="append")
     add("demo", cmd_demo, "full vertical slice on one scenario", inputs=True)

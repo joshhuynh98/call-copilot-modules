@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 
-from callcopilot.contracts import EmailDraft, EmailOptions, MeetingSummary, RecommendationSet, StyleProfile, Transcript
+from callcopilot.contracts import EmailDraft, MeetingSummary, RecommendationSet, StyleProfile, Transcript
 from callcopilot.llm import LLMClient, LLMConfig, create_client
 from callcopilot.modules.email import draft_email
 from callcopilot.modules.summary import summarize
@@ -42,5 +42,5 @@ def run_summary(transcript: Transcript, config: LLMConfig, llm: LLMClient | None
 
 
 def run_email(transcript: Transcript, summary: MeetingSummary, style: StyleProfile, recs: RecommendationSet | None,
-              config: LLMConfig, options: EmailOptions | None = None, llm: LLMClient | None = None) -> EmailDraft:
-    return draft_email(transcript, summary, style, recs, llm or make_llm(config, transcript), options)
+              config: LLMConfig, llm: LLMClient | None = None) -> EmailDraft:
+    return draft_email(transcript, summary, style, recs, llm or make_llm(config, transcript))

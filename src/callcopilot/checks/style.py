@@ -12,11 +12,20 @@ MAX_AVG_SENTENCE_WORDS = 22
 _LIST_LINE = re.compile(r"^\s*(?:[-*+•]|\d+[.)])\s+(.*)$")
 
 
-def check_style(text: str) -> list[CheckResult]:
+def check_style(text: str, *, courtesy_line: bool = False) -> list[CheckResult]:
+    """`courtesy_line=True` (customer email): exactly one brief thank-you is expected, wherever the model places it.
+    False (summaries, chat): none."""
     out: list[CheckResult] = []
 
     filler = sorted({m.group(0).lower() for m in policy.FILLER_RE.finditer(text)})
     out.append(CheckResult("no_filler", not filler, [f"filler: '{f}'" for f in filler], soft=True))
+
+    n = len(policy.COURTESY_RE.findall(text))
+    if courtesy_line:
+        detail = [] if n == 1 else ["no courtesy line: briefly thank the customer for their time" if n == 0 else f"{n} thank-you lines; one is enough"]
+    else:
+        detail = [] if n == 0 else ["thank-you line not wanted here"]
+    out.append(CheckResult("courtesy_line", not detail, detail, soft=True))
 
     long_items = []
     for line in text.splitlines():

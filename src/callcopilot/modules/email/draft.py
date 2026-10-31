@@ -1,7 +1,7 @@
 """Email wrap-up: summary -> plain-text customer follow-up DRAFT.
 
 Pipeline: generate (LLM) -> deterministic checks -> up to 2 repair rounds -> last-resort enforcement.
-The returned draft always satisfies the hard rules (plain text, no meeting offers when off, only public
+The model chooses the format and length; there are no per-email settings. The returned draft always satisfies the hard rules (plain text, no meeting offers, only public
 links from the provided sources, no ticket ids, third-party scope statement); anything that had to be
 auto-fixed or couldn't be fixed is listed in `warnings` for the agent.
 """
@@ -12,7 +12,7 @@ import json
 from callcopilot import policy
 from callcopilot.checks import EmailPolicy, check_email, enforce_email_text, failed
 from callcopilot.contracts import (
-    ClaimToVerify, EmailCore, EmailDraft, EmailOptions, MeetingSummary, RecommendationSet, StyleProfile, Transcript,
+    ClaimToVerify, EmailCore, EmailDraft, MeetingSummary, RecommendationSet, StyleProfile, Transcript,
 )
 from callcopilot.llm import LLMClient, Message, Tag, generate_structured
 from callcopilot.modules.recommendations import triage_recommendations
@@ -23,9 +23,6 @@ MAX_REPAIRS = 2
 SCOPE_SENTENCE = ("Please note that {names} is a third-party product and outside OPSWAT's scope, "
                   "so your own team or the vendor will need to handle that part.")
 
-MEETING_RULE_OFF = ("Do NOT offer, suggest or request a call, meeting, demo or screen share. Do not write the words call or meeting "
-                    "as an offer. Next steps are handled by email.")
-MEETING_RULE_ON = "The agent allows ONE short, optional offer of a call, if it genuinely helps. Do not request a specific time."
 THIRD_PARTY_RULE_ON = ("This call involves third-party product(s): {names}. In one or two plain sentences say that this part is a "
                        "third-party product outside OPSWAT's scope and that the customer's own team or the vendor should handle it. "
                        "Do NOT suggest fixes, settings or troubleshooting steps for it.")
@@ -63,12 +60,10 @@ def draft_email(
     style: StyleProfile,
     recs: RecommendationSet | None,
     llm: LLMClient,
-    options: EmailOptions | None = None,
 ) -> EmailDraft:
-    options = options or EmailOptions()
     meta = transcript.metadata
     link_recs = triage_recommendations(recs, summary.recommendation_notes)  # drop duplicates / unrelated items
-    pol = EmailPolicy.build(options, recs, summary, link_recs)
+    pol = EmailPolicy.build(recs, summary, link_recs)
     links = build_links(link_recs)
     components = [_clean_name(c.name) for c in summary.third_party_components]
     names = ", ".join(components)
@@ -76,8 +71,6 @@ def draft_email(
 
     msgs = prompt.render(
         untrusted_notice=UNTRUSTED_NOTICE, style_rules=load_prompt("style_rules").system,
-        max_words=options.max_words,
-        meeting_rule=MEETING_RULE_ON if options.allow_meeting_offer else MEETING_RULE_OFF,
         third_party_rule=THIRD_PARTY_RULE_ON.format(names=names) if components else THIRD_PARTY_RULE_OFF,
         customer=meta.customer_name, contact=meta.customer_contact or "unknown", agent=style.name,
         tone=style.tone,

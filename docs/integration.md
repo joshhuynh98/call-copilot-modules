@@ -3,7 +3,7 @@
 ## As a Python library
 
 ```python
-from callcopilot.contracts import Transcript, RecommendationSet, StyleProfile, MeetingContext, EmailOptions
+from callcopilot.contracts import Transcript, RecommendationSet, StyleProfile, MeetingContext
 from callcopilot.llm import load_config
 from callcopilot.pipeline import make_llm, run_summary, run_email
 from callcopilot.modules.chatbot import ChatSession
@@ -11,7 +11,7 @@ from callcopilot.modules.chatbot import ChatSession
 cfg = load_config()                       # env vars; raises ConfigError with an actionable message
 llm = make_llm(cfg, transcript)           # provider adapter + redaction
 summary = run_summary(transcript, cfg, llm)
-draft = run_email(transcript, summary, style, recommendations, cfg, EmailOptions(), llm)
+draft = run_email(transcript, summary, style, recommendations, cfg, llm)
 
 chat = ChatSession(MeetingContext(transcript=transcript, recommendations=recommendations,
                                   style_profile=style, summary=summary, email_draft=draft),
@@ -25,12 +25,12 @@ for event in chat.ask("What should I try next?"):
 | Endpoint | Body | Returns |
 |---|---|---|
 | `POST /v1/summary` | `{transcript, recommendations?}` | `MeetingSummary` (grouped, v2.0; includes `recommendation_notes` when recommendations are given) |
-| `POST /v1/email` | `{transcript, style_profile, recommendations?, summary?, options?}` | `EmailDraft` |
-| `POST /v1/email/check` | `{subject, body, recommendations?, summary?, options?, signature?}` | `EmailReview`: `{passed, checks[], fixes[], suggested_body?}` for an edited draft |
+| `POST /v1/email` | `{transcript, style_profile, recommendations?, summary?}` | `EmailDraft` |
+| `POST /v1/email/check` | `{subject, body, recommendations?, summary?, signature?}` | `EmailReview`: `{passed, checks[], fixes[], suggested_body?}` for an edited draft |
 | `POST /v1/recommendations/evaluate` | `{recommendations, transcript?}` | `{passed, checks[]}` |
 | `PUT /v1/meetings/{id}` | `MeetingContext` | registers a meeting for chat |
-| `POST /v1/meetings/{id}/summary` / `/email` | optional options | generates and stores on the meeting |
-| `POST /v1/meetings/{id}/email/check` | `{subject, body}` | `EmailReview` using the meeting's recommendations, summary and options |
+| `POST /v1/meetings/{id}/summary` / `/email` | none | generates and stores on the meeting |
+| `POST /v1/meetings/{id}/email/check` | `{subject, body}` | `EmailReview` using the meeting's recommendations and summary |
 | `POST /v1/meetings/{id}/chat` | `{message}` | SSE stream of `ChatEvent` |
 
 Errors: `{"error": "..."}` with `401` (bad `X-API-Key`), `404`, `502` (AI server failed or returned unusable output) or `503` (AI server not configured). Front-end specifics (CORS, API key, SSE, what to render): [frontend.md](frontend.md).

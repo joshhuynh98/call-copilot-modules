@@ -2,6 +2,10 @@
 
 `check_email` is used by the eval harness and by the generator's repair loop.
 `enforce_email_text` guarantees the hard rules even if the model ignores them after repair.
+
+There are no per-email settings: the model decides the format and length of each email, and these fixed
+rules are the guardrails (plain text, no meeting offers, public links only, no ticket ids, third-party scope,
+a length ceiling). Style preferences (target length, one courtesy line, no filler) are soft.
 """
 from __future__ import annotations
 
@@ -9,25 +13,26 @@ import re
 from dataclasses import dataclass, field
 
 from callcopilot import policy
-from callcopilot.contracts import EmailDraft, EmailOptions, MeetingSummary, RecommendationSet
+from callcopilot.contracts import EmailDraft, MeetingSummary, RecommendationSet
 
 from .base import CheckResult
 from .style import check_style
 
+MAX_EMAIL_WORDS = 220  # hard ceiling: a guardrail against waffle, not the target
+TARGET_EMAIL_WORDS = 150  # soft: most emails should be shorter
 MAX_PARAGRAPH_WORDS = 60
 MAX_SUBJECT_CHARS = 100
 
 
 @dataclass
 class EmailPolicy:
-    options: EmailOptions = field(default_factory=EmailOptions)
     allowed_urls: set[str] = field(default_factory=set)  # public_doc URLs only
     jira_keys: set[str] = field(default_factory=set)  # every key from the provided sources
     third_party_names: list[str] = field(default_factory=list)  # from the summary + policy terms
     has_third_party: bool = False  # summary found a third-party component -> scope statement required
 
     @classmethod
-    def build(cls, options: EmailOptions, recs: RecommendationSet | None, summary: MeetingSummary | None,
+    def build(cls, recs: RecommendationSet | None, summary: MeetingSummary | None,
               link_recs: RecommendationSet | None = None) -> "EmailPolicy":
         """`recs` = everything provided (all its Jira keys are forbidden in the email);
         `link_recs` = the triaged subset whose public links may be used (defaults to `recs`)."""
@@ -38,7 +43,7 @@ class EmailPolicy:
                 allowed.add(s.url)
         components = [c.name for c in summary.third_party_components] if summary else []
         names = [n.lower() for n in components] + list(policy.third_party_terms())
-        return cls(options, allowed, keys, names, bool(components))
+        return cls(allowed, keys, names, bool(components))
 
 
 def _words(text: str) -> int:
@@ -55,14 +60,12 @@ def check_email(draft: EmailDraft, pol: EmailPolicy, *, signature: str = "") -> 
     hits = [name for name, rx in policy.MARKDOWN_PATTERNS.items() if rx.search(draft.body) or rx.search(draft.subject)]
     out.append(CheckResult("no_markdown", not hits, [f"found: {', '.join(hits)}"] if hits else []))
 
-    if pol.options.allow_meeting_offer:
-        out.append(CheckResult("no_meeting_offer", True, ["skipped: allow_meeting_offer=true"]))
-    else:
-        m = policy.MEETING_OFFER_RE.search(text)
-        out.append(CheckResult("no_meeting_offer", not m, [f"found: '{m.group(0)}'"] if m else []))
+    m = policy.MEETING_OFFER_RE.search(text)
+    out.append(CheckResult("no_meeting_offer", not m, [f"found: '{m.group(0)}'"] if m else []))
 
     n = _words(body)
-    out.append(CheckResult("length_limit", n <= pol.options.max_words, [f"{n} words > max {pol.options.max_words}"] if n > pol.options.max_words else []))
+    out.append(CheckResult("length_limit", n <= MAX_EMAIL_WORDS, [f"{n} words > ceiling {MAX_EMAIL_WORDS}"] if n > MAX_EMAIL_WORDS else []))
+    out.append(CheckResult("target_length", n <= TARGET_EMAIL_WORDS, [f"{n} words; most emails fit in {TARGET_EMAIL_WORDS}"] if n > TARGET_EMAIL_WORDS else [], soft=True))
 
     long_paras = [p for p in re.split(r"\n\s*\n", body) if _words(p) > MAX_PARAGRAPH_WORDS]
     out.append(CheckResult("short_paragraphs", not long_paras, [f"{len(long_paras)} paragraph(s) over {MAX_PARAGRAPH_WORDS} words"] if long_paras else []))
@@ -85,7 +88,7 @@ def check_email(draft: EmailDraft, pol: EmailPolicy, *, signature: str = "") -> 
         out.append(CheckResult("third_party_scope_statement", ok, [] if ok else ["summary has third-party components but email has no out-of-scope statement"]))
     bad = policy.third_party_troubleshooting(body, pol.third_party_names)
     out.append(CheckResult("no_third_party_troubleshooting", not bad, [f"sentence: {s}" for s in bad]))
-    out += check_style(body)
+    out += check_style(body, courtesy_line=True)
     return out
 
 
@@ -114,16 +117,15 @@ def enforce_email_text(text: str, pol: EmailPolicy) -> tuple[str, list[str]]:
         cleaned = re.sub(rf"\b{re.escape(key)}\b", "", cleaned)
         fixes.append(f"removed ticket id {key}")
 
-    if not pol.options.allow_meeting_offer:
-        kept, dropped = [], []
-        for line in cleaned.split("\n"):
-            parts = re.split(r"(?<=[.!?])\s+", line)
-            ok = [p for p in parts if not policy.MEETING_OFFER_RE.search(p)]
-            dropped += [p for p in parts if policy.MEETING_OFFER_RE.search(p)]
-            kept.append(" ".join(ok))
-        if dropped:
-            cleaned = "\n".join(kept)
-            fixes.append("removed meeting/call offer sentence(s)")
+    kept, dropped = [], []
+    for line in cleaned.split("\n"):
+        parts = re.split(r"(?<=[.!?])\s+", line)
+        ok = [p for p in parts if not policy.MEETING_OFFER_RE.search(p)]
+        dropped += [p for p in parts if policy.MEETING_OFFER_RE.search(p)]
+        kept.append(" ".join(ok))
+    if dropped:
+        cleaned = "\n".join(kept)
+        fixes.append("removed meeting/call offer sentence(s)")
 
     cleaned = re.sub(r"[ \t]+\n", "\n", cleaned)
     cleaned = re.sub(r" {2,}", " ", cleaned)

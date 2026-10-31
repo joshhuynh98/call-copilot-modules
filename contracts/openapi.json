@@ -392,23 +392,6 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "anyOf": [
-                  {
-                    "$ref": "#/components/schemas/MeetingEmailRequest"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "title": "Req"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -946,16 +929,6 @@
               }
             ]
           },
-          "options": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EmailOptions"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "signature": {
             "type": "string",
             "title": "Signature",
@@ -1027,26 +1000,6 @@
         "title": "EmailDraft",
         "description": "Always a DRAFT: the agent reviews and edits before sending."
       },
-      "EmailOptions": {
-        "properties": {
-          "allow_meeting_offer": {
-            "type": "boolean",
-            "title": "Allow Meeting Offer",
-            "description": "Default off: no offering/requesting calls or meetings.",
-            "default": false
-          },
-          "max_words": {
-            "type": "integer",
-            "maximum": 600.0,
-            "minimum": 40.0,
-            "title": "Max Words",
-            "description": "Target body length, excluding signature.",
-            "default": 150
-          }
-        },
-        "type": "object",
-        "title": "EmailOptions"
-      },
       "EmailRequest": {
         "properties": {
           "transcript": {
@@ -1069,16 +1022,6 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/MeetingSummary"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "options": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EmailOptions"
               },
               {
                 "type": "null"
@@ -1229,16 +1172,6 @@
               }
             ]
           },
-          "email_options": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EmailOptions"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "summary": {
             "anyOf": [
               {
@@ -1284,22 +1217,6 @@
           "body"
         ],
         "title": "MeetingEmailCheckRequest"
-      },
-      "MeetingEmailRequest": {
-        "properties": {
-          "options": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EmailOptions"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "MeetingEmailRequest"
       },
       "MeetingSummary": {
         "properties": {

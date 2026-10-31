@@ -20,7 +20,7 @@
     }
   ],
   "sample_emails": [
-    "Hi Greg,\n\nIssue: the reports queue was backing up.\n\nWhat we saw:\n- The server was short on memory.\n\nNext steps:\n1. You: send the memory graph for the last week.\n2. Me: check the sizing guide and reply with a recommendation.\n\nThanks,\nLuca"
+    "Hi Greg,\n\nThanks for your time today.\n\nIssue: the reports queue was backing up.\n\nWhat we saw:\n- The server was short on memory.\n\nNext steps:\n1. You: send the memory graph for the last week.\n2. Me: check the sizing guide and reply with a recommendation.\n\nThanks,\nLuca"
   ],
   "signature": "Thanks,\nLuca Bianchi\nOPSWAT Support Engineer"
 }

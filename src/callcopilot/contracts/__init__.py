@@ -4,7 +4,7 @@ from .outputs import (
     MeetingSummary, NextAction, ProductInfo, RecNote, SummaryContent, SummaryCore, ThirdPartyComponent, ToolUse,
 )
 from .recommendations import Recommendation, RecommendationSet, Source, SourceType
-from .style import EmailOptions, GlossaryEntry, StyleProfile
+from .style import GlossaryEntry, StyleProfile
 from .tools import SearchHit, ToolBackend
 from .transcript import CallMetadata, Segment, Speaker, Transcript
 

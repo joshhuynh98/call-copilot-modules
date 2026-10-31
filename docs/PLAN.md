@@ -16,9 +16,10 @@ Approved plan for the modules I own. Timeline: 2 weeks; build fast, leave time t
 | Language | Emails always English. Transcript and recommendations fed in are English. Demo strictly English. |
 | Data format between modules | Unknown yet. We define our own contracts now; an AI-assisted adapter can convert/integrate later. Contracts are lenient so adapters have room. |
 | Links in customer emails | **Public docs only.** The email may refer to internal work generically but must not contain Jira ticket ids or Atlassian/internal-KB links. Enforced in code (see [email-rules.md](email-rules.md)). |
-| Meetings in emails | No offer/request for calls or meetings unless `allow_meeting_offer=true`. |
+| Meetings in emails | Never offer or request a call or meeting. A fixed rule with no setting (it was an option at first; the option was removed). |
 | Style of summary and email | Concise, minimal or no filler. Plain English: easy to understand, not childish. Lists (bullets or numbered) where applicable. See [ADR 0007](decisions/0007-organise-first-summary.md). |
 | Messy input | The AI reviews it first and groups it logically (issues, what happened before and during the call, findings, next steps by owner, open questions) before anything is written. Duplicate or unrelated recommendations are set aside. |
+| Email format | **The AI decides** the format and length of each email, guided by principles: informative, courteous (one brief thank-you for the customer's time), concise, easy to scan. No user-facing email settings (no thank-you toggle, length or meeting-offer settings). |
 | Email lists | Plain-text numbered and dash lines are allowed; other markdown is still not. |
 | Third-party products | OPSWAT is not responsible. Email/chat state it is out of scope and give no troubleshooting for it. |
 | AI server | Undecided (Claude API or local OpenAI-compatible server). Design works for either via env vars only. |

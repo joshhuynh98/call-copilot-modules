@@ -20,7 +20,7 @@
     }
   ],
   "sample_emails": [
-    "Hello Ms Duarte,\n\nWhat I understood:\n- The report export fails when the date range is longer than one month.\n\nStill to confirm:\n- Whether the same happens on the test system.\n\nNext steps:\n1. You: try a one-week range and tell me the result.\n2. Me: check the export limits and reply.\n\nRegards,\nHana"
+    "Hello Ms Duarte,\n\nThank you for speaking with me today.\n\nWhat I understood:\n- The report export fails when the date range is longer than one month.\n\nStill to confirm:\n- Whether the same happens on the test system.\n\nNext steps:\n1. You: try a one-week range and tell me the result.\n2. Me: check the export limits and reply.\n\nRegards,\nHana"
   ],
   "signature": "Regards,\nHana Kobayashi\nTechnical Support Engineer, OPSWAT"
 }

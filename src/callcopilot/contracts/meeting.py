@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from .outputs import EmailDraft, MeetingSummary
 from .recommendations import RecommendationSet
-from .style import EmailOptions, StyleProfile
+from .style import StyleProfile
 from .transcript import Transcript
 
 
@@ -13,6 +13,5 @@ class MeetingContext(BaseModel):
     transcript: Transcript
     recommendations: RecommendationSet | None = None
     style_profile: StyleProfile | None = None
-    email_options: EmailOptions | None = None
     summary: MeetingSummary | None = None
     email_draft: EmailDraft | None = None

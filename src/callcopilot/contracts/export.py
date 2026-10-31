@@ -10,7 +10,6 @@ MODELS: dict[str, type[BaseModel]] = {
     "transcript": c.Transcript,
     "recommendation_set": c.RecommendationSet,
     "style_profile": c.StyleProfile,
-    "email_options": c.EmailOptions,
     "meeting_context": c.MeetingContext,
     "meeting_summary": c.MeetingSummary,
     "email_draft": c.EmailDraft,

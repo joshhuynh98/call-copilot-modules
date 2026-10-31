@@ -3,7 +3,7 @@ import pytest
 
 from callcopilot.checks import EmailPolicy, check_email, check_recommendations, failed
 from callcopilot.checks.summary import check_summary
-from callcopilot.contracts import EmailDraft, EmailOptions, MeetingSummary
+from callcopilot.contracts import EmailDraft, MeetingSummary
 from callcopilot.sources import list_scenarios, load_scenario
 
 SCENARIOS = list_scenarios()
@@ -46,7 +46,7 @@ def test_golden_summary_passes_checks(sid):
 def test_golden_email_passes_checks_and_expectations(sid):
     sc = load_scenario(sid)
     summary = MeetingSummary(**sc.golden_summary.model_dump())
-    pol = EmailPolicy.build(EmailOptions(), sc.recommendations, summary)
+    pol = EmailPolicy.build(sc.recommendations, summary)
     draft = EmailDraft(subject=sc.golden_email.subject, body=sc.golden_email.body + "\n\n" + sc.style.signature)
     bad = failed(check_email(draft, pol, signature=sc.style.signature))
     assert not bad, [str(b) for b in bad]

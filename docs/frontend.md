@@ -1,6 +1,6 @@
 # Front-end integration guide
 
-For whoever builds the webapp UI. Everything here is plain HTTP + JSON (+ one SSE stream). A working reference client is [demo.html](../src/callcopilot/static/demo.html) (about 80 lines of plain JavaScript, served at `/` by the API).
+For whoever builds the webapp UI. Everything here is plain HTTP + JSON (+ one SSE stream). A working reference client is [demo.html](../src/callcopilot/static/demo.html) (plain JavaScript, no build step, served at `/` by the API). It renders everything described under "What the UI should render": recommendations cheatsheet, grouped summary with owner columns, uncertainty badges and clickable timestamp chips that highlight the transcript line, an editable email draft with live rule checks and a one-click fix, and streaming chat with copy-ready email boxes. Demo shortcuts: `/?scenario=<id>&tab=summary|email|chat&gen=summary|email|chat&q=<question>`.
 
 ## Run the API
 
@@ -47,11 +47,11 @@ Stateless alternatives (no meeting registration) exist for the same operations: 
 | `GET /health` | | `{status, ai, auth}`; 503 `{status: "misconfigured", error}` if the AI server is not configured |
 | `PUT /v1/meetings/{id}` | `MeetingContext` | `{meeting_id, case_id}` |
 | `POST /v1/meetings/{id}/summary` | | `MeetingSummary` |
-| `POST /v1/meetings/{id}/email` | optional `{options: {allow_meeting_offer, max_words}}` | `EmailDraft` (needs `style_profile` on the meeting) |
+| `POST /v1/meetings/{id}/email` | none | `EmailDraft` (needs `style_profile` on the meeting) |
 | `POST /v1/meetings/{id}/email/check` | `{subject, body}` | `EmailReview` |
 | `POST /v1/meetings/{id}/chat` | `{message}` | `text/event-stream` |
 | `DELETE /v1/meetings/{id}/chat` | | `{reset: true}` |
-| `POST /v1/email/check` | `{subject, body, recommendations?, summary?, options?, signature?}` | `EmailReview` |
+| `POST /v1/email/check` | `{subject, body, recommendations?, summary?, signature?}` | `EmailReview` |
 | `POST /v1/recommendations/evaluate` | `{recommendations, transcript?}` | `{passed, checks[]}` |
 | `GET /v1/scenarios`, `GET /v1/scenarios/{id}` | | demo data (fictional calls) |
 
@@ -108,6 +108,7 @@ An empty `token` may appear while the guard runs its second pass: ignore it.
 ## What the UI should render
 
 - **Email draft:** always as an *editable draft*, never auto-sent. Show `warnings` (things we auto-fixed or could not fix) and `claims_needing_verification` (facts the agent should confirm) next to it. Show `links_used`.
+- **No email settings:** do not add toggles for the thank-you line, length or meeting offers. The AI decides the format and length of each draft; the agent just edits the result.
 - **Editing the draft:** call `/email/check` on edit (debounced) or before send. `passed: false` means a hard rule is broken (markdown, meeting offer, ticket id, internal or invented link, too long, missing third-party scope statement). `checks[]` has a `name` and `details` per rule. `suggested_body` is an auto-fixed version when one exists: offer it as a one-click fix. Soft checks (`soft: true`) are advisory.
 - **Chat replies:** light markdown is fine. Text inside `<email>...</email>` is customer-pasteable plain text: show it in its own box with a copy button, without markdown rendering, and strip the tags. Show citations as links (`url`) and Jira keys (`jira_key`); these are for the agent only.
 - **Summary (v2.0, already grouped):** show `plain_language` first, then the sections in this order: `issues` (one or more), `before_call`, `in_call`, `findings`, **next steps grouped by `next_actions[].owner`** (`agent` = Support, `customer`, `opswat_other`), `open_questions`. Skip empty sections. Mark claims with `uncertain: true`, show `product.uncertain`, and highlight `low_confidence_segment_ids` in the transcript view. `segment_ids` on any claim link back to transcript segments. Show `third_party_components` as "out of OPSWAT scope". `recommendation_notes` lists duplicate or unrelated recommendations (`relevant: false`, with a short `note`): show them greyed out or under "set aside" rather than hiding them.

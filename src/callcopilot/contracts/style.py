@@ -21,8 +21,3 @@ class StyleProfile(BaseModel):
     glossary: list[GlossaryEntry] = Field(default_factory=list)
     sample_emails: list[str] = Field(default_factory=list)
     signature: str = ""
-
-
-class EmailOptions(BaseModel):
-    allow_meeting_offer: bool = Field(default=False, description="Default off: no offering/requesting calls or meetings.")
-    max_words: int = Field(default=150, ge=40, le=600, description="Target body length, excluding signature.")

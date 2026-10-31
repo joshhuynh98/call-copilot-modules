@@ -57,7 +57,7 @@ TROUBLESHOOT_VERB_RE = re.compile(
 # Pleasantries and padding the product owner does not want in summaries or emails (soft check + prompt rule).
 FILLER_RE = re.compile(
     r"\b(i hope (this|you)[^.!?\n]{0,30}|hope you('re| are) (doing )?well|"
-    r"thank(s| you) for (your time|taking the time|reaching out|contacting|joining|your patience|getting in touch)|"
+    r"thank(s| you) for (reaching out|contacting|your patience|getting in touch)|"
     r"here is a (quick |short |brief )?(recap|summary|overview)|here'?s a (quick |short |brief )?(recap|summary|overview)|"
     r"(please )?(do not|don'?t) hesitate|feel free to (reach out|contact|ask)|let me know if you have any (further |more |other )?questions|"
     r"i wanted to (follow up|reach out|touch base|check in)|touch base|at your earliest convenience|"
@@ -65,6 +65,11 @@ FILLER_RE = re.compile(
     r"needless to say|it is worth (noting|mentioning)|as you (may )?know|i appreciate your patience|basically|essentially)\b",
     re.IGNORECASE,
 )
+
+
+# The one courtesy a customer email includes ("Thank you for your time during the meeting."), wherever the model thinks it
+# reads best. Counted, not banned: exactly one is expected in a customer email, none in summaries and chat.
+COURTESY_RE = re.compile(r"\b(thank(s| you)( again| so much| very much)? for (your time|taking the time|speaking with (me|us)|joining|meeting with (me|us))|i appreciate (your|the) time)", re.IGNORECASE)
 
 
 def extract_urls(text: str) -> list[str]:
