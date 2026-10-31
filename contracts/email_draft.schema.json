@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "ClaimToVerify": {
+      "properties": {
+        "claim": {
+          "title": "Claim",
+          "type": "string"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "segment_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Segment Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "claim"
+      ],
+      "title": "ClaimToVerify",
+      "type": "object"
+    }
+  },
+  "description": "Always a DRAFT: the agent reviews and edits before sending.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "case_id": {
+      "default": "",
+      "title": "Case Id",
+      "type": "string"
+    },
+    "subject": {
+      "title": "Subject",
+      "type": "string"
+    },
+    "body": {
+      "description": "Plain text only, signature included.",
+      "title": "Body",
+      "type": "string"
+    },
+    "claims_needing_verification": {
+      "items": {
+        "$ref": "#/$defs/ClaimToVerify"
+      },
+      "title": "Claims Needing Verification",
+      "type": "array"
+    },
+    "links_used": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Links Used",
+      "type": "array"
+    },
+    "warnings": {
+      "description": "Auto-fixes we applied or issues the agent should look at.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    },
+    "meta": {
+      "additionalProperties": true,
+      "title": "Meta",
+      "type": "object"
+    }
+  },
+  "required": [
+    "subject",
+    "body"
+  ],
+  "title": "EmailDraft",
+  "type": "object"
+}

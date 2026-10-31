@@ -1,0 +1,152 @@
+{
+  "$defs": {
+    "Recommendation": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "rank": {
+          "description": "1 = most relevant / likely next step.",
+          "title": "Rank",
+          "type": "integer"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "action": {
+          "description": "One-line action the agent can take now (quality bar: <=120 chars).",
+          "title": "Action",
+          "type": "string"
+        },
+        "rationale": {
+          "description": "One-to-two-line why (quality bar: <=240 chars).",
+          "title": "Rationale",
+          "type": "string"
+        },
+        "sources": {
+          "description": "Quality bar: 1-4 sources.",
+          "items": {
+            "$ref": "#/$defs/Source"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "trigger_segment_ids": {
+          "description": "Transcript segments that triggered this.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Trigger Segment Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "rank",
+        "title",
+        "action",
+        "rationale"
+      ],
+      "title": "Recommendation",
+      "type": "object"
+    },
+    "Source": {
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/SourceType"
+        },
+        "label": {
+          "description": "Human-readable title of the page/ticket.",
+          "title": "Label",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "jira_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Jira Key"
+        },
+        "snippet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snippet"
+        }
+      },
+      "required": [
+        "type",
+        "label",
+        "url"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "SourceType": {
+      "enum": [
+        "public_doc",
+        "internal_kb",
+        "confluence",
+        "jira",
+        "past_case"
+      ],
+      "title": "SourceType",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "case_id": {
+      "title": "Case Id",
+      "type": "string"
+    },
+    "recommendations": {
+      "items": {
+        "$ref": "#/$defs/Recommendation"
+      },
+      "title": "Recommendations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "case_id",
+    "recommendations"
+  ],
+  "title": "RecommendationSet",
+  "type": "object"
+}

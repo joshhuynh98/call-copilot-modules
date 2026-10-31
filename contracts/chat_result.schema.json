@@ -1,0 +1,151 @@
+{
+  "$defs": {
+    "Citation": {
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "jira_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Jira Key"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "Citation",
+      "type": "object"
+    },
+    "SourceType": {
+      "enum": [
+        "public_doc",
+        "internal_kb",
+        "confluence",
+        "jira",
+        "past_case"
+      ],
+      "title": "SourceType",
+      "type": "string"
+    },
+    "ToolUse": {
+      "properties": {
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        },
+        "arguments": {
+          "additionalProperties": true,
+          "title": "Arguments",
+          "type": "object"
+        },
+        "result_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result Count"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "forced": {
+          "default": false,
+          "description": "True if our guard ran it because the model was about to say 'I don't know'.",
+          "title": "Forced",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "tool"
+      ],
+      "title": "ToolUse",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "citations": {
+      "items": {
+        "$ref": "#/$defs/Citation"
+      },
+      "title": "Citations",
+      "type": "array"
+    },
+    "tools_used": {
+      "items": {
+        "$ref": "#/$defs/ToolUse"
+      },
+      "title": "Tools Used",
+      "type": "array"
+    },
+    "checked": {
+      "description": "What was searched, for 'not found' answers.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Checked",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "text"
+  ],
+  "title": "ChatResult",
+  "type": "object"
+}

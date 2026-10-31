@@ -1,0 +1,29 @@
+# Terms that indicate a NON-OPSWAT (third-party) product. One per line, case-insensitive, '#' = comment.
+# OPSWAT is not responsible for these: emails/chat must state they are out of scope and must not
+# suggest fixes for them. Edit freely; agreed list is still an open question for the team (docs/PLAN.md).
+vdi
+citrix
+vmware
+horizon
+hyper-v
+proxy
+squid
+f5
+big-ip
+bluecoat
+zscaler
+palo alto
+fortigate
+fortinet
+check point
+firewall
+ssl inspection
+tls inspection
+ssl decryption
+load balancer
+nginx
+haproxy
+sharepoint
+exchange
+antivirus
+edr

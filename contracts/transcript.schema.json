@@ -1,0 +1,203 @@
+{
+  "$defs": {
+    "CallMetadata": {
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "customer_name": {
+          "title": "Customer Name",
+          "type": "string"
+        },
+        "customer_contact": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Person on the call; used for the email greeting.",
+          "title": "Customer Contact"
+        },
+        "agent_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Name"
+        },
+        "product": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Product as recorded on the case, if any. May be wrong or missing.",
+          "title": "Product"
+        },
+        "product_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Product Version"
+        },
+        "call_start": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Call Start"
+        },
+        "call_end": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Call End"
+        }
+      },
+      "required": [
+        "case_id",
+        "customer_name"
+      ],
+      "title": "CallMetadata",
+      "type": "object"
+    },
+    "Segment": {
+      "properties": {
+        "id": {
+          "description": "Stable segment id, e.g. seg_007. Referenced by recommendations and our claims.",
+          "title": "Id",
+          "type": "string"
+        },
+        "speaker": {
+          "$ref": "#/$defs/Speaker"
+        },
+        "start_ms": {
+          "default": 0,
+          "description": "Milliseconds from call start.",
+          "minimum": 0,
+          "title": "Start Ms",
+          "type": "integer"
+        },
+        "end_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Ms",
+          "type": "integer"
+        },
+        "text_original": {
+          "title": "Text Original",
+          "type": "string"
+        },
+        "text_translated": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "English text; null if the original is already English.",
+          "title": "Text Translated"
+        },
+        "language": {
+          "default": "en",
+          "title": "Language",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ASR/translation confidence if known.",
+          "title": "Confidence"
+        },
+        "is_final": {
+          "default": true,
+          "title": "Is Final",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "speaker",
+        "text_original"
+      ],
+      "title": "Segment",
+      "type": "object"
+    },
+    "Speaker": {
+      "enum": [
+        "agent",
+        "customer"
+      ],
+      "title": "Speaker",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/$defs/CallMetadata"
+    },
+    "segments": {
+      "items": {
+        "$ref": "#/$defs/Segment"
+      },
+      "title": "Segments",
+      "type": "array"
+    }
+  },
+  "required": [
+    "metadata",
+    "segments"
+  ],
+  "title": "Transcript",
+  "type": "object"
+}

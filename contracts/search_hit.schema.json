@@ -1,0 +1,64 @@
+{
+  "$defs": {
+    "SourceType": {
+      "enum": [
+        "public_doc",
+        "internal_kb",
+        "confluence",
+        "jira",
+        "past_case"
+      ],
+      "title": "SourceType",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "url": {
+      "title": "Url",
+      "type": "string"
+    },
+    "snippet": {
+      "default": "",
+      "title": "Snippet",
+      "type": "string"
+    },
+    "source_type": {
+      "$ref": "#/$defs/SourceType"
+    },
+    "jira_key": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Jira Key"
+    },
+    "score": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Score"
+    }
+  },
+  "required": [
+    "title",
+    "url",
+    "source_type"
+  ],
+  "title": "SearchHit",
+  "type": "object"
+}

@@ -1,0 +1,93 @@
+{
+  "$defs": {
+    "GlossaryEntry": {
+      "properties": {
+        "term": {
+          "title": "Term",
+          "type": "string"
+        },
+        "preferred": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Wording the agent prefers for this term.",
+          "title": "Preferred"
+        },
+        "avoid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Avoid"
+        }
+      },
+      "required": [
+        "term"
+      ],
+      "title": "GlossaryEntry",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "agent_id": {
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "tone": {
+      "default": "friendly and professional",
+      "description": "Free text, e.g. 'warm, direct, no jargon'.",
+      "title": "Tone",
+      "type": "string"
+    },
+    "preferred_language": {
+      "default": "en",
+      "title": "Preferred Language",
+      "type": "string"
+    },
+    "glossary": {
+      "items": {
+        "$ref": "#/$defs/GlossaryEntry"
+      },
+      "title": "Glossary",
+      "type": "array"
+    },
+    "sample_emails": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Sample Emails",
+      "type": "array"
+    },
+    "signature": {
+      "default": "",
+      "title": "Signature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "agent_id",
+    "name"
+  ],
+  "title": "StyleProfile",
+  "type": "object"
+}
