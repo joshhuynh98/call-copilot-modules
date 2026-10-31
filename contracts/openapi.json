@@ -1303,23 +1303,32 @@
       },
       "MeetingSummary": {
         "properties": {
-          "plain_language": {
-            "type": "string",
-            "title": "Plain Language",
-            "description": "2-4 sentence plain-language wrap-up (<=100 words)."
-          },
-          "issue": {
-            "$ref": "#/components/schemas/Claim"
-          },
-          "product": {
-            "$ref": "#/components/schemas/ProductInfo"
-          },
-          "steps_taken": {
+          "issues": {
             "items": {
               "$ref": "#/components/schemas/Claim"
             },
             "type": "array",
-            "title": "Steps Taken"
+            "title": "Issues",
+            "description": "Problems the customer reported, most important first. One short line each."
+          },
+          "product": {
+            "$ref": "#/components/schemas/ProductInfo"
+          },
+          "before_call": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Before Call",
+            "description": "What was tried or done BEFORE the call."
+          },
+          "in_call": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "In Call",
+            "description": "What was checked or done DURING the call."
           },
           "findings": {
             "items": {
@@ -1333,7 +1342,8 @@
               "$ref": "#/components/schemas/NextAction"
             },
             "type": "array",
-            "title": "Next Actions"
+            "title": "Next Actions",
+            "description": "After the call; owner = agent (support), customer or opswat_other."
           },
           "open_questions": {
             "items": {
@@ -1349,15 +1359,27 @@
             "type": "array",
             "title": "Third Party Components"
           },
+          "plain_language": {
+            "type": "string",
+            "title": "Plain Language",
+            "description": "2-3 plain sentences (<=60 words): what happened and what comes next."
+          },
           "schema_version": {
             "type": "string",
             "title": "Schema Version",
-            "default": "1.0"
+            "default": "2.0"
           },
           "case_id": {
             "type": "string",
             "title": "Case Id",
             "default": ""
+          },
+          "recommendation_notes": {
+            "items": {
+              "$ref": "#/components/schemas/RecNote"
+            },
+            "type": "array",
+            "title": "Recommendation Notes"
           },
           "low_confidence_segment_ids": {
             "items": {
@@ -1374,9 +1396,7 @@
         },
         "type": "object",
         "required": [
-          "plain_language",
-          "issue",
-          "product"
+          "plain_language"
         ],
         "title": "MeetingSummary",
         "description": "SummaryCore plus fields we fill in deterministically in code."
@@ -1462,6 +1482,43 @@
         },
         "type": "object",
         "title": "ProductInfo"
+      },
+      "RecNote": {
+        "properties": {
+          "rec_id": {
+            "type": "string",
+            "title": "Rec Id"
+          },
+          "relevant": {
+            "type": "boolean",
+            "title": "Relevant",
+            "description": "False for duplicates or items unrelated to this call.",
+            "default": true
+          },
+          "issue": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issue",
+            "description": "Index into `issues` this recommendation addresses, if any."
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "rec_id"
+        ],
+        "title": "RecNote",
+        "description": "Triage of one provided recommendation, made while organising the call."
       },
       "Recommendation": {
         "properties": {
@@ -1747,6 +1804,16 @@
         "properties": {
           "transcript": {
             "$ref": "#/components/schemas/Transcript"
+          },
+          "recommendations": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecommendationSet"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",

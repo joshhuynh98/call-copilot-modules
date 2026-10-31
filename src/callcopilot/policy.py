@@ -15,12 +15,12 @@ NOT_JIRA_PREFIXES = {
     "TCP", "UDP", "OS", "WIN", "X", "PDF", "ECDSA", "RSA", "KB", "GB", "MB", "TB", "SQL",
 }
 
-# Markdown that must never appear in a customer email. Numbered lists ("1. ...") are allowed (plain text).
+# Markdown that must never appear in a customer email. Plain-text lists are allowed: numbered ("1. ...") and dash ("- ...") lines.
 MARKDOWN_PATTERNS = {
     "bold/italic (**)": re.compile(r"\*\*|__"),
     "backticks": re.compile(r"`"),
     "heading (#)": re.compile(r"(?m)^\s*#{1,6}\s"),
-    "bullet (- * +)": re.compile(r"(?m)^\s*[-*+•]\s+"),
+    "bullet (* + •)": re.compile(r"(?m)^\s*[*+•]\s+"),
     "markdown link": re.compile(r"\[[^\]]+\]\([^)]+\)"),
     "table": re.compile(r"(?m)^\s*\|.*\|\s*$|^\s*\|?\s*-{3,}"),
     "html tag": re.compile(r"</?[a-zA-Z][^>]*>"),
@@ -50,6 +50,19 @@ SCOPE_STATEMENT_RE = re.compile(
 TROUBLESHOOT_VERB_RE = re.compile(
     r"\b(restart|reboot|reconfigure|configure|change|check|update|upgrade|disable|enable|adjust|increase|"
     r"decrease|set|whitelist|allowlist|bypass|exclude|reset|clear|install|try|modify|edit|open|turn)\b",
+    re.IGNORECASE,
+)
+
+
+# Pleasantries and padding the product owner does not want in summaries or emails (soft check + prompt rule).
+FILLER_RE = re.compile(
+    r"\b(i hope (this|you)[^.!?\n]{0,30}|hope you('re| are) (doing )?well|"
+    r"thank(s| you) for (your time|taking the time|reaching out|contacting|joining|your patience|getting in touch)|"
+    r"here is a (quick |short |brief )?(recap|summary|overview)|here'?s a (quick |short |brief )?(recap|summary|overview)|"
+    r"(please )?(do not|don'?t) hesitate|feel free to (reach out|contact|ask)|let me know if you have any (further |more |other )?questions|"
+    r"i wanted to (follow up|reach out|touch base|check in)|touch base|at your earliest convenience|"
+    r"as per our (call|conversation|discussion)|per our (call|conversation|discussion)|rest assured|"
+    r"needless to say|it is worth (noting|mentioning)|as you (may )?know|i appreciate your patience|basically|essentially)\b",
     re.IGNORECASE,
 )
 

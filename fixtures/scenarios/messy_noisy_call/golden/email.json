@@ -1,10 +1,37 @@
 {
   "subject": "Follow-up on your managed instances showing as disconnected",
-  "body": "Hi Wendell,\n\nThanks for your time today. The line was noisy in places, so I am listing only what I am confident about and what we still need to confirm.\n\nWhat we understood: two of your five managed Core instances show as disconnected since the Central Management upgrade, and you see a red label next to them.\n\nStill to confirm: the exact version (both 7.5.2 and 7.4.2 were mentioned), the upgrade day, whether you restarted the service or rebooted the server, and the exact text of the red label.\n\nNext steps:\n1. You: send a screenshot of the red label and the Central Management log from the upgrade day.\n2. You: confirm the version from the About page, the upgrade day and what you restarted.\n3. Me: review the documentation on reconnecting instances after an upgrade, then follow up in writing.\n\nBackground: https://docs.example-opswat.invalid/central-management/instances/managing-connected-instances",
+  "body": "Hi Wendell,\n\nThe line was noisy in places, so this lists only what I am sure about and what we still need to confirm.\n\nWhat we understood:\n- Two of your five managed Core instances show as disconnected since the Central Management upgrade.\n- A red label appears next to them.\n\nStill to confirm:\n- The version: both 7.5.2 and 7.4.2 were mentioned.\n- The upgrade day.\n- Whether you restarted the service or rebooted the server.\n- The exact text of the red label.\n\nNext steps:\n1. You: send a screenshot of the red label and the Central Management log from the upgrade day.\n2. You: confirm the version from the About page, the upgrade day and what you restarted.\n3. Me: review the documentation on reconnecting instances after an upgrade, then follow up in writing.\n\nBackground: https://docs.example-opswat.invalid/central-management/instances/managing-connected-instances",
   "claims_needing_verification": [
-    {"claim": "The installed Central Management version is 7.5.2.", "reason": "The customer first said 7.5.2 and later said it might be 7.4.2; the first mention was also low-confidence audio.", "segment_ids": ["seg_004", "seg_010"]},
-    {"claim": "The upgrade was done on Sunday.", "reason": "The customer later said it may have been Saturday and will check their change record.", "segment_ids": ["seg_006", "seg_014"]},
-    {"claim": "The customer restarted only the Central Management service and did not reboot the server.", "reason": "The account changed between a service restart, a full server reboot and a reboot of a Core machine.", "segment_ids": ["seg_008", "seg_010"]},
-    {"claim": "The red label says authentication failed or token expired.", "reason": "The customer could not read the label exactly and the transcript segment has very low confidence.", "segment_ids": ["seg_012"]}
+    {
+      "claim": "The installed Central Management version is 7.5.2.",
+      "reason": "The customer first said 7.5.2 and later said it might be 7.4.2; the first mention was also low-confidence audio.",
+      "segment_ids": [
+        "seg_004",
+        "seg_010"
+      ]
+    },
+    {
+      "claim": "The upgrade was done on Sunday.",
+      "reason": "The customer later said it may have been Saturday and will check their change record.",
+      "segment_ids": [
+        "seg_006",
+        "seg_014"
+      ]
+    },
+    {
+      "claim": "The customer restarted only the Central Management service and did not reboot the server.",
+      "reason": "The account changed between a service restart, a full server reboot and a reboot of a Core machine.",
+      "segment_ids": [
+        "seg_008",
+        "seg_010"
+      ]
+    },
+    {
+      "claim": "The red label says authentication failed or token expired.",
+      "reason": "The customer could not read the label exactly and the transcript segment has very low confidence.",
+      "segment_ids": [
+        "seg_012"
+      ]
+    }
   ]
 }

@@ -40,3 +40,7 @@ The contract itself is lenient (it accepts items that miss the bar) so the repor
 ```
 
 or `POST /v1/recommendations/evaluate` with `{"recommendations": {...}, "transcript": {...}}`. The judge rubric `judge_recommendation_relevance` (versioned in `src/callcopilot/prompts/`) scores relevance 1–5 when an AI server is configured.
+
+## Triage when the input is messy
+
+The recommendation module may send duplicates or items that do not fit the call. The summary's organise stage flags these (`MeetingSummary.recommendation_notes`: `rec_id`, `relevant`, `issue` = index of the issue it addresses, short `note`), and code flags near-duplicates itself. Only the relevant ones feed the customer email (links and context); the ticket ids of every provided recommendation stay forbidden in the email, and the chatbot still shows the agent the full list. Triage never removes everything. Sending clean, deduplicated recommendations of course makes this a no-op.

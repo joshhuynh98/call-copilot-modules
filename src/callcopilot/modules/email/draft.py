@@ -15,6 +15,7 @@ from callcopilot.contracts import (
     ClaimToVerify, EmailCore, EmailDraft, EmailOptions, MeetingSummary, RecommendationSet, StyleProfile, Transcript,
 )
 from callcopilot.llm import LLMClient, Message, Tag, generate_structured
+from callcopilot.modules.recommendations import triage_recommendations
 from callcopilot.prompt_loader import load_prompt
 from callcopilot.safety import UNTRUSTED_NOTICE
 
@@ -66,14 +67,15 @@ def draft_email(
 ) -> EmailDraft:
     options = options or EmailOptions()
     meta = transcript.metadata
-    pol = EmailPolicy.build(options, recs, summary)
-    links = build_links(recs)
+    link_recs = triage_recommendations(recs, summary.recommendation_notes)  # drop duplicates / unrelated items
+    pol = EmailPolicy.build(options, recs, summary, link_recs)
+    links = build_links(link_recs)
     components = [_clean_name(c.name) for c in summary.third_party_components]
     names = ", ".join(components)
     prompt = load_prompt("email")
 
     msgs = prompt.render(
-        untrusted_notice=UNTRUSTED_NOTICE,
+        untrusted_notice=UNTRUSTED_NOTICE, style_rules=load_prompt("style_rules").system,
         max_words=options.max_words,
         meeting_rule=MEETING_RULE_ON if options.allow_meeting_offer else MEETING_RULE_OFF,
         third_party_rule=THIRD_PARTY_RULE_ON.format(names=names) if components else THIRD_PARTY_RULE_OFF,
@@ -81,9 +83,9 @@ def draft_email(
         tone=style.tone,
         glossary="; ".join(f"{g.term} -> {g.preferred}" + (f" (avoid '{g.avoid}')" if g.avoid else "") for g in style.glossary) or "(none)",
         samples="\n---\n".join(style.sample_emails) or "(none)",
-        summary=json.dumps(summary.model_dump(exclude={"meta"}), indent=1),
+        summary=json.dumps(summary.model_dump(exclude={"meta", "recommendation_notes"}), indent=1),
         links="\n".join(f"- {l['title']}: {l['url']}" for l in links) or "(none: include no link)",
-        internal_notes=internal_notes(recs),
+        internal_notes=internal_notes(link_recs),
     )
 
     core, repairs = generate_structured(llm, msgs, EmailCore, tag=Tag("email", meta.case_id))
@@ -94,13 +96,13 @@ def draft_email(
         return EmailDraft(subject=c.subject.strip(), body=(c.body.strip() + (f"\n\n{sig}" if sig else "")))
 
     for _ in range(MAX_REPAIRS):
-        problems = failed(check_email(as_draft(core), pol, signature=style.signature))
+        problems = [r for r in check_email(as_draft(core), pol, signature=style.signature) if not r.passed]  # hard + soft style
         if not problems:
             break
         feedback = "\n".join(f"- {p.name}: {'; '.join(p.details) or 'failed'}" for p in problems)
         msgs = msgs + [
             Message("assistant", core.model_dump_json()),
-            Message("user", f"The draft breaks these rules:\n{feedback}\nRewrite the email so it follows every rule. "
+            Message("user", f"The draft has these problems:\n{feedback}\nRewrite the email so it follows every rule. "
                             "Reply with ONLY the corrected JSON object."),
         ]
         core, extra = generate_structured(llm, msgs, EmailCore, tag=Tag("email", meta.case_id))

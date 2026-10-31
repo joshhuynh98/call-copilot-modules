@@ -36,8 +36,9 @@ def make_llm(config: LLMConfig, transcript: Transcript | None = None, env=None) 
     return RedactingClient(base, redactor) if redactor.enabled else base
 
 
-def run_summary(transcript: Transcript, config: LLMConfig, llm: LLMClient | None = None) -> MeetingSummary:
-    return summarize(transcript, llm or make_llm(config, transcript), config)
+def run_summary(transcript: Transcript, config: LLMConfig, llm: LLMClient | None = None,
+                recommendations: RecommendationSet | None = None) -> MeetingSummary:
+    return summarize(transcript, llm or make_llm(config, transcript), config, recommendations)
 
 
 def run_email(transcript: Transcript, summary: MeetingSummary, style: StyleProfile, recs: RecommendationSet | None,

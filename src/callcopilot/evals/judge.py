@@ -50,5 +50,9 @@ class Judge:
     def email_tone(self, case_id: str, style: StyleProfile, email: EmailDraft) -> JudgeResult:
         return self._score("judge_email_tone", case_id, style=style.model_dump_json(), subject=email.subject, body=email.body)
 
+    def clarity_conciseness(self, case_id: str, summary: MeetingSummary, email: EmailDraft) -> JudgeResult:
+        return self._score("judge_clarity_conciseness", case_id, summary=summary.model_dump_json(exclude={"meta", "recommendation_notes"}),
+                           subject=email.subject, body=email.body)
+
     def recommendation_relevance(self, t: Transcript, recs: RecommendationSet) -> JudgeResult:
         return self._score("judge_recommendation_relevance", t.metadata.case_id, transcript=t.render(), candidate=recs.model_dump_json())

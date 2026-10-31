@@ -35,27 +35,46 @@ class ThirdPartyComponent(BaseModel):
     segment_ids: list[str] = Field(default_factory=list)
 
 
-class SummaryCore(BaseModel):
-    """The part the LLM produces."""
-    plain_language: str = Field(description="2-4 sentence plain-language wrap-up (<=100 words).")
-    issue: Claim
-    product: ProductInfo
-    steps_taken: list[Claim] = Field(default_factory=list)
+class RecNote(BaseModel):
+    """Triage of one provided recommendation, made while organising the call."""
+    rec_id: str
+    relevant: bool = Field(default=True, description="False for duplicates or items unrelated to this call.")
+    issue: int | None = Field(default=None, description="Index into `issues` this recommendation addresses, if any.")
+    note: str = ""
+
+
+class SummaryContent(BaseModel):
+    """The grouped content of a call: what both the organise stage and the final summary contain."""
+    issues: list[Claim] = Field(default_factory=list, description="Problems the customer reported, most important first. One short line each.")
+    product: ProductInfo = Field(default_factory=ProductInfo)
+    before_call: list[Claim] = Field(default_factory=list, description="What was tried or done BEFORE the call.")
+    in_call: list[Claim] = Field(default_factory=list, description="What was checked or done DURING the call.")
     findings: list[Claim] = Field(default_factory=list)
-    next_actions: list[NextAction] = Field(default_factory=list)
+    next_actions: list[NextAction] = Field(default_factory=list, description="After the call; owner = agent (support), customer or opswat_other.")
     open_questions: list[Claim] = Field(default_factory=list)
     third_party_components: list[ThirdPartyComponent] = Field(default_factory=list)
 
 
+class CallBrief(SummaryContent):
+    """Stage 1 output (organise): grouped, de-duplicated, chronological, with recommendation triage."""
+    recommendation_notes: list[RecNote] = Field(default_factory=list)
+
+
+class SummaryCore(SummaryContent):
+    """Stage 2 output (write): the concise, plain-English wording."""
+    plain_language: str = Field(description="2-3 plain sentences (<=60 words): what happened and what comes next.")
+
+
 class MeetingSummary(SummaryCore):
     """SummaryCore plus fields we fill in deterministically in code."""
-    schema_version: str = SCHEMA_VERSION
+    schema_version: str = "2.0"
     case_id: str = ""
+    recommendation_notes: list[RecNote] = Field(default_factory=list)
     low_confidence_segment_ids: list[str] = Field(default_factory=list)
     meta: dict[str, Any] = Field(default_factory=dict)
 
     def all_claims(self) -> list[Claim]:
-        return [self.issue, *self.steps_taken, *self.findings, *self.open_questions]
+        return [*self.issues, *self.before_call, *self.in_call, *self.findings, *self.open_questions]
 
 
 class ClaimToVerify(BaseModel):

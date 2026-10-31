@@ -1,7 +1,14 @@
 {
   "subject": "Follow-up on MetaDefender Endpoint registration on your virtual desktops",
-  "body": "Dear Marcus,\n\nThank you for your time today. Here is a short summary.\n\nWhat we found: the MetaDefender Endpoint log shows registration failing because the certificate chain is not trusted. The issuer is your network team's SSL inspection proxy. You also mentioned that your profile tool restores user profiles after Endpoint has started.\n\nScope: your virtual desktop platform, the profile tool and the SSL inspection proxy are third-party products and outside OPSWAT's scope. Your virtual desktop team, your network team and the vendors should handle them.\n\nNext steps:\n1. Me: confirm the MetaDefender Endpoint side against the full log and follow up by end of day tomorrow.\n2. You: send the full Endpoint log from one affected desktop today.\n3. You: pass this summary to your virtual desktop team and your network team.\n\nOur documented guidance for non-persistent desktops: https://docs.example-opswat.invalid/endpoint/deployment/non-persistent-desktops",
+  "body": "Dear Marcus,\n\nIssue: on your virtual desktops, MetaDefender Endpoint shows as unregistered and loses its settings after logoff.\n\nWhat we found:\n- The Endpoint log says the certificate chain is not trusted. The issuer is your network team's SSL inspection proxy.\n- Your profile tool attaches user profiles after the Endpoint service has started.\n\nScope: your virtual desktop platform, the profile tool and the SSL inspection proxy are third-party products and outside OPSWAT's scope. Your virtual desktop team, your network team and the vendors should handle them.\n\nNext steps:\n1. Me: confirm the Endpoint side against the full log by end of day tomorrow.\n2. You: send the full Endpoint log from one affected desktop today.\n3. You: pass this email to your virtual desktop team and your network team.\n\nOur guidance for non-persistent desktops: https://docs.example-opswat.invalid/endpoint/deployment/non-persistent-desktops",
   "claims_needing_verification": [
-    {"claim": "MetaDefender Endpoint itself is behaving as designed and nothing on the Endpoint side contributes.", "reason": "Based on the log lines read out during the discussion; the full log has not been reviewed yet.", "segment_ids": ["seg_008", "seg_013"]}
+    {
+      "claim": "MetaDefender Endpoint itself is behaving as designed and nothing on the Endpoint side contributes.",
+      "reason": "Based on the log lines read out during the discussion; the full log has not been reviewed yet.",
+      "segment_ids": [
+        "seg_008",
+        "seg_013"
+      ]
+    }
   ]
 }

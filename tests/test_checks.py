@@ -26,7 +26,8 @@ def test_good_email_passes(icap):
 
 @pytest.mark.parametrize("body,expected", [
     ("Hi Dana,\n\n**Next steps**\nsend the log", "no_markdown"),
-    ("Hi Dana,\n\n- send the log\n- wait", "no_markdown"),
+    ("Hi Dana,\n\n* send the log\n* wait", "no_markdown"),
+    ("Hi Dana,\n\n• send the log", "no_markdown"),
     ("Hi Dana,\n\n# Summary\nsend the log", "no_markdown"),
     ("Hi Dana,\n\nSee [the doc](" + DOC + ")", "no_markdown"),
     ("Hi Dana,\n\nRun `restart` now", "no_markdown"),

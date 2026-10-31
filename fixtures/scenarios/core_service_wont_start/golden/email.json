@@ -1,7 +1,15 @@
 {
   "subject": "Follow-up on MetaDefender Core not starting after the upgrade",
-  "body": "Hello Marcus,\n\nThank you for your time today. Here is a short recap.\n\nWhat we found: after the upgrade to 5.13.2, the Core service stops because its web service port, 8008, is already in use. The process holding it looks like an old Core process from before the upgrade.\n\nNext steps:\n1. You: end that old process (ID 4312), start the Core service and tell me whether it stays running.\n2. You: send the installer log from last night.\n3. Me: send the steps for stopping the services cleanly, and check with our engineering team why the old process was still running.\n\nMore background on stopping and starting the services: https://docs.example-opswat.invalid/core/administration/start-stop-services",
+  "body": "Hello Marcus,\n\nIssue: after the upgrade to 5.13.2, the Core service stops about ten seconds after it starts.\n\nWhat we found:\n- The Core log says port 8008 is already in use.\n- Process 4312 holds that port and looks like an old Core process from before the upgrade.\n\nNext steps:\n1. You: end process 4312, start the Core service and tell me whether it stays running.\n2. You: send the installer log from the upgrade.\n3. Me: send the steps for stopping the services cleanly before an upgrade.\n4. Me: ask our engineering team why the old process was still running.\n\nBackground on stopping and starting the services: https://docs.example-opswat.invalid/core/administration/start-stop-services",
   "claims_needing_verification": [
-    {"claim": "The old Core process was left running by the upgrade installer.", "reason": "Not yet confirmed with engineering or in the installer log.", "segment_ids": ["seg_008", "seg_010", "seg_011"]}
+    {
+      "claim": "The old Core process was left running by the upgrade installer.",
+      "reason": "Not yet confirmed with engineering or in the installer log.",
+      "segment_ids": [
+        "seg_008",
+        "seg_010",
+        "seg_011"
+      ]
+    }
   ]
 }

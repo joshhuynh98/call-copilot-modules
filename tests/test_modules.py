@@ -20,10 +20,10 @@ def test_summary_on_fake_provider(icap):
 
 def test_summary_drops_unknown_evidence_and_marks_ungrounded_claims_uncertain(icap):
     core = icap.golden_summary.model_copy(deep=True)
-    core.issue.segment_ids = ["seg_002", "seg_999"]
+    core.issues[0].segment_ids = ["seg_002", "seg_999"]
     core.findings[0].segment_ids = ["seg_404"]
     s = summarize(icap.transcript, ScriptedLLM([core.model_dump_json()]), FAKE)
-    assert s.issue.segment_ids == ["seg_002"] and not s.issue.uncertain
+    assert s.issues[0].segment_ids == ["seg_002"] and not s.issues[0].uncertain
     assert s.findings[0].segment_ids == [] and s.findings[0].uncertain
 
 
@@ -31,7 +31,8 @@ def test_long_transcripts_are_map_reduced(icap):
     llm = ScriptedLLM([icap.golden_summary.model_dump_json()])
     s = summarize(icap.transcript, llm, LLMConfig(provider="fake", max_context_tokens=120))
     assert s.meta["chunks"] > 1
-    assert len(llm.calls) == s.meta["chunks"] + 1 and llm.calls[-1][1].task == "summary_reduce"
+    assert len(llm.calls) == s.meta["chunks"] + 2  # one organise per chunk, a merge, then the writer
+    assert [c[1].task for c in llm.calls[-2:]] == ["organize_reduce", "summary"]
 
 
 def test_summary_marks_low_confidence_segments(icap):
@@ -54,7 +55,7 @@ BAD = json.dumps({
     "body": "Hi Dana,\n\n**Next steps**\n- See SUP-48211 and https://opswat-internal.atlassian.example.invalid/browse/SUP-48211\n"
             "Let's schedule a call to review.\nDocs: https://docs.example-opswat.invalid/invented",
 })
-GOOD = json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nThanks for your time.\n\nNext steps:\n1. Me: send the steps.\n2. You: send the log."})
+GOOD = json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nNext steps:\n1. Me: send the steps.\n2. You: send the log."})
 
 
 def build(icap, replies, summary=None, **opts):
@@ -66,7 +67,7 @@ def build(icap, replies, summary=None, **opts):
 def test_email_repair_loop_fixes_a_bad_first_draft(icap):
     d, llm = build(icap, [BAD, GOOD])
     assert d.meta["repairs"] == 1 and not d.warnings and "SUP-" not in d.body and "**" not in d.body
-    assert "breaks these rules" in llm.calls[1][0][-1].content
+    assert "has these problems" in llm.calls[1][0][-1].content
 
 
 def test_email_enforcement_is_last_resort_and_tells_the_agent(icap):
@@ -78,7 +79,7 @@ def test_email_enforcement_is_last_resort_and_tells_the_agent(icap):
 
 def test_email_gets_scope_statement_when_model_forgets(vdi):
     summary = MeetingSummary(**vdi.golden_summary.model_dump())
-    forgot = json.dumps({"subject": "Recap", "body": "Hi Marcus,\n\nThanks for your time.\n\nNext steps:\n1. Me: review the log."})
+    forgot = json.dumps({"subject": "Recap", "body": "Hi Marcus,\n\nNext steps:\n1. Me: review the log."})
     d = draft_email(vdi.transcript, summary, vdi.style, vdi.recommendations, ScriptedLLM([forgot]))
     assert "outside OPSWAT's scope" in d.body and any("out-of-scope statement" in w for w in d.warnings)
 
@@ -110,7 +111,7 @@ def test_redaction_in_the_loop_restores_names(icap):
 
     def echo(messages):
         seen.append("\n".join(m.content for m in messages))
-        return json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nThanks for your time.\n\nNext steps:\n1. Me: send the steps."})
+        return json.dumps({"subject": "Recap", "body": "Hi Dana,\n\nNext steps:\n1. Me: send the steps."})
 
     llm = make_llm(LLMConfig(provider="openai", url="x", model="m"), icap.transcript)
     llm.inner = ScriptedLLM([echo])

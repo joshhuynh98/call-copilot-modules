@@ -112,6 +112,44 @@
       "title": "ProductInfo",
       "type": "object"
     },
+    "RecNote": {
+      "description": "Triage of one provided recommendation, made while organising the call.",
+      "properties": {
+        "rec_id": {
+          "title": "Rec Id",
+          "type": "string"
+        },
+        "relevant": {
+          "default": true,
+          "description": "False for duplicates or items unrelated to this call.",
+          "title": "Relevant",
+          "type": "boolean"
+        },
+        "issue": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Index into `issues` this recommendation addresses, if any.",
+          "title": "Issue"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rec_id"
+      ],
+      "title": "RecNote",
+      "type": "object"
+    },
     "ThirdPartyComponent": {
       "properties": {
         "name": {
@@ -142,22 +180,31 @@
   },
   "description": "SummaryCore plus fields we fill in deterministically in code.",
   "properties": {
-    "plain_language": {
-      "description": "2-4 sentence plain-language wrap-up (<=100 words).",
-      "title": "Plain Language",
-      "type": "string"
-    },
-    "issue": {
-      "$ref": "#/$defs/Claim"
+    "issues": {
+      "description": "Problems the customer reported, most important first. One short line each.",
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "Issues",
+      "type": "array"
     },
     "product": {
       "$ref": "#/$defs/ProductInfo"
     },
-    "steps_taken": {
+    "before_call": {
+      "description": "What was tried or done BEFORE the call.",
       "items": {
         "$ref": "#/$defs/Claim"
       },
-      "title": "Steps Taken",
+      "title": "Before Call",
+      "type": "array"
+    },
+    "in_call": {
+      "description": "What was checked or done DURING the call.",
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "In Call",
       "type": "array"
     },
     "findings": {
@@ -168,6 +215,7 @@
       "type": "array"
     },
     "next_actions": {
+      "description": "After the call; owner = agent (support), customer or opswat_other.",
       "items": {
         "$ref": "#/$defs/NextAction"
       },
@@ -188,8 +236,13 @@
       "title": "Third Party Components",
       "type": "array"
     },
+    "plain_language": {
+      "description": "2-3 plain sentences (<=60 words): what happened and what comes next.",
+      "title": "Plain Language",
+      "type": "string"
+    },
     "schema_version": {
-      "default": "1.0",
+      "default": "2.0",
       "title": "Schema Version",
       "type": "string"
     },
@@ -197,6 +250,13 @@
       "default": "",
       "title": "Case Id",
       "type": "string"
+    },
+    "recommendation_notes": {
+      "items": {
+        "$ref": "#/$defs/RecNote"
+      },
+      "title": "Recommendation Notes",
+      "type": "array"
     },
     "low_confidence_segment_ids": {
       "items": {
@@ -212,9 +272,7 @@
     }
   },
   "required": [
-    "plain_language",
-    "issue",
-    "product"
+    "plain_language"
   ],
   "title": "MeetingSummary",
   "type": "object"

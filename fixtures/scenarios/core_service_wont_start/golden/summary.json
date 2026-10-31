@@ -1,25 +1,105 @@
 {
-  "plain_language": "Since last night's upgrade to 5.13.2, Ashgrove's MetaDefender Core service stops about ten seconds after it starts. The log says port 8008 is already in use, and the process holding it looks like an old Core process from before the upgrade. Marcus will end that process, restart the service and report back; Jordan will send the clean-stop upgrade steps and check with engineering.",
-  "issue": {"text": "After the upgrade the Core service starts but stops about ten seconds later, and the web console never loads.", "segment_ids": ["seg_002"]},
-  "product": {"name": "MetaDefender Core", "version": "5.13.2", "segment_ids": ["seg_004"], "uncertain": false},
-  "steps_taken": [
-    {"text": "Customer read the Core log from the moment the service stops.", "segment_ids": ["seg_006"]},
-    {"text": "Customer checked the services list and found only the one Core service.", "segment_ids": ["seg_008"]},
-    {"text": "Customer listed what is listening on port 8008 together with its process ID.", "segment_ids": ["seg_010"]}
+  "plain_language": "After last night's upgrade to 5.13.2, MetaDefender Core stops about ten seconds after it starts. The log says port 8008 is in use, and the process holding it looks like an old Core process. Marcus will end it and restart the service; Jordan will send clean-stop upgrade steps and check with engineering.",
+  "issues": [
+    {
+      "text": "After the upgrade the Core service starts but stops about ten seconds later, and the web console never loads.",
+      "segment_ids": [
+        "seg_002"
+      ]
+    }
+  ],
+  "product": {
+    "name": "MetaDefender Core",
+    "version": "5.13.2",
+    "segment_ids": [
+      "seg_004"
+    ],
+    "uncertain": false
+  },
+  "before_call": [
+    {
+      "text": "The customer upgraded Core from 5.10.1 to 5.13.2 on a Windows server; the installer reported success.",
+      "segment_ids": [
+        "seg_004"
+      ]
+    }
+  ],
+  "in_call": [
+    {
+      "text": "Customer read the Core log from the moment the service stops.",
+      "segment_ids": [
+        "seg_006"
+      ]
+    },
+    {
+      "text": "Customer checked the services list and found only the one Core service.",
+      "segment_ids": [
+        "seg_008"
+      ]
+    },
+    {
+      "text": "Customer listed what is listening on port 8008 together with its process ID.",
+      "segment_ids": [
+        "seg_010"
+      ]
+    }
   ],
   "findings": [
-    {"text": "The Core log says it failed to start the web service because the address is already in use on port 8008, then the service shuts down.", "segment_ids": ["seg_006"]},
-    {"text": "Process ID 4312 is listening on port 8008 and looks like an old Core worker process started before the upgrade.", "segment_ids": ["seg_010"]},
-    {"text": "Core was upgraded from 5.10.1 to 5.13.2 on a Windows server and the installer reported success.", "segment_ids": ["seg_004"]}
+    {
+      "text": "The Core log says it failed to start the web service because the address is already in use on port 8008, then the service shuts down.",
+      "segment_ids": [
+        "seg_006"
+      ]
+    },
+    {
+      "text": "Process ID 4312 is listening on port 8008 and looks like an old Core worker process started before the upgrade.",
+      "segment_ids": [
+        "seg_010"
+      ]
+    }
   ],
   "next_actions": [
-    {"owner": "customer", "action": "End the old Core process (ID 4312), start the Core service and report whether it stays running.", "due": "right after the call", "segment_ids": ["seg_013", "seg_014"]},
-    {"owner": "customer", "action": "Attach the installer log from the upgrade and keep the Core log in case the service stops again.", "segment_ids": ["seg_013", "seg_014"]},
-    {"owner": "agent", "action": "Send the steps for stopping the services cleanly before an upgrade.", "segment_ids": ["seg_015"]},
-    {"owner": "opswat_other", "action": "Ask engineering whether the installer should have stopped the old process.", "segment_ids": ["seg_011"]}
+    {
+      "owner": "customer",
+      "action": "End the old Core process (ID 4312), start the Core service and report whether it stays running.",
+      "due": "right after the call",
+      "segment_ids": [
+        "seg_013",
+        "seg_014"
+      ]
+    },
+    {
+      "owner": "customer",
+      "action": "Attach the installer log from the upgrade and keep the Core log in case the service stops again.",
+      "segment_ids": [
+        "seg_013",
+        "seg_014"
+      ]
+    },
+    {
+      "owner": "agent",
+      "action": "Send the steps for stopping the services cleanly before an upgrade.",
+      "segment_ids": [
+        "seg_015"
+      ]
+    },
+    {
+      "owner": "opswat_other",
+      "action": "Ask engineering whether the installer should have stopped the old process.",
+      "segment_ids": [
+        "seg_011"
+      ]
+    }
   ],
   "open_questions": [
-    {"text": "Why the old process was still running after the upgrade, and whether the installer should have stopped it.", "segment_ids": ["seg_008", "seg_011"], "uncertain": true}
+    {
+      "text": "Why the old process was still running after the upgrade, and whether the installer should have stopped it.",
+      "segment_ids": [
+        "seg_008",
+        "seg_011"
+      ],
+      "uncertain": true
+    }
   ],
   "third_party_components": []
 }

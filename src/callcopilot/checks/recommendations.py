@@ -32,6 +32,20 @@ def _url_ok(url: str) -> bool:
     return p.scheme in ("http", "https") and bool(p.netloc) and " " not in url
 
 
+def find_duplicates(recs) -> dict[str, str]:
+    """{duplicate rec id: id of the earlier rec it duplicates}: near-identical title+action, or the same source set."""
+    seen: list[tuple[str, set[str], set[str]]] = []
+    dups: dict[str, str] = {}
+    for r in recs:
+        toks = _tokens(f"{r.title} {r.action}")
+        urls = {s.url for s in r.sources}
+        for rid, t2, u2 in seen:
+            if _jaccard(toks, t2) >= DUPLICATE_SIMILARITY or (urls and urls == u2):
+                dups.setdefault(r.id, rid)
+        seen.append((r.id, toks, urls))
+    return dups
+
+
 def check_recommendations(
     recset: RecommendationSet,
     transcript: Transcript | None = None,
@@ -99,15 +113,7 @@ def check_recommendations(
         bad = policy.third_party_troubleshooting(f"{r.action}. {r.rationale}", terms)
         out.append(CheckResult("no_third_party_troubleshooting", not bad, [f"'{s}'" for s in bad], sc))
 
-    seen: list[tuple[str, set[str], set[str]]] = []
-    dup = []
-    for r in recs:
-        toks = _tokens(f"{r.title} {r.action}")
-        urls = {s.url for s in r.sources}
-        for rid, t2, u2 in seen:
-            if _jaccard(toks, t2) >= DUPLICATE_SIMILARITY or (urls and urls == u2):
-                dup.append(f"{r.id} duplicates {rid}")
-        seen.append((r.id, toks, urls))
+    dup = [f"{rid} duplicates {orig}" for rid, orig in find_duplicates(recs).items()]
     out.append(CheckResult("no_duplicates", not dup, dup))
 
     if recs and recs[0].confidence is not None:

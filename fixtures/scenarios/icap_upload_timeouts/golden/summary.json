@@ -1,23 +1,99 @@
 {
   "plain_language": "Kestrel Freight's portal uploads over about 50 MB fail after roughly a minute with an ICAP 500. The ICAP Server log shows it times out after 60 seconds waiting for Core to scan large zip archives. Sam will send the documented timeout steps; the customer will send the full log and the size of the largest zip.",
-  "issue": {"text": "Uploads larger than about 50 MB fail after roughly 60 seconds; the portal logs an ICAP 500 response.", "segment_ids": ["seg_002", "seg_004"]},
-  "product": {"name": "MetaDefender ICAP Server", "version": "5.8.0", "segment_ids": ["seg_006"], "uncertain": false},
-  "steps_taken": [
-    {"text": "Customer checked the ICAP Server log for a failed upload.", "segment_ids": ["seg_008"]},
-    {"text": "Agent asked the customer to hold off changing the timeout until the documented steps arrive.", "segment_ids": ["seg_013"]}
+  "issues": [
+    {
+      "text": "Uploads larger than about 50 MB fail after roughly 60 seconds; the portal logs an ICAP 500 response.",
+      "segment_ids": [
+        "seg_002",
+        "seg_004"
+      ]
+    }
+  ],
+  "product": {
+    "name": "MetaDefender ICAP Server",
+    "version": "5.8.0",
+    "segment_ids": [
+      "seg_006"
+    ],
+    "uncertain": false
+  },
+  "before_call": [
+    {
+      "text": "Both products were upgraded about two months ago.",
+      "segment_ids": [
+        "seg_006"
+      ]
+    }
+  ],
+  "in_call": [
+    {
+      "text": "Customer checked the ICAP Server log for a failed upload.",
+      "segment_ids": [
+        "seg_008"
+      ]
+    },
+    {
+      "text": "Agent asked the customer to hold off changing the timeout until the documented steps arrive.",
+      "segment_ids": [
+        "seg_013"
+      ]
+    }
   ],
   "findings": [
-    {"text": "ICAP Server logs 'timed out waiting for Core scan result after 60 seconds' and then returns the 500 to the portal.", "segment_ids": ["seg_008"]},
-    {"text": "The failing files are mostly zip archives, the largest around 80 MB.", "segment_ids": ["seg_010", "seg_014"]},
-    {"text": "Core is version 5.12.0; both products were upgraded about two months ago.", "segment_ids": ["seg_006"]}
+    {
+      "text": "ICAP Server logs 'timed out waiting for Core scan result after 60 seconds' and then returns the 500 to the portal.",
+      "segment_ids": [
+        "seg_008"
+      ]
+    },
+    {
+      "text": "The failing files are mostly zip archives, the largest around 80 MB.",
+      "segment_ids": [
+        "seg_010",
+        "seg_014"
+      ]
+    },
+    {
+      "text": "Core is version 5.12.0, connected to ICAP Server 5.8.0.",
+      "segment_ids": [
+        "seg_006"
+      ]
+    }
   ],
   "next_actions": [
-    {"owner": "agent", "action": "Confirm the ICAP scan timeout setting and the Core archive handling limits in the documentation and send the steps.", "segment_ids": ["seg_011"]},
-    {"owner": "customer", "action": "Send the full ICAP Server log for one failed upload and the size of the largest zip.", "due": "this afternoon", "segment_ids": ["seg_013", "seg_014"]},
-    {"owner": "agent", "action": "Follow up with what to test after the customer applies the steps.", "segment_ids": ["seg_015"]}
+    {
+      "owner": "agent",
+      "action": "Confirm the ICAP scan timeout setting and the Core archive handling limits in the documentation and send the steps.",
+      "segment_ids": [
+        "seg_011"
+      ]
+    },
+    {
+      "owner": "customer",
+      "action": "Send the full ICAP Server log for one failed upload and the size of the largest zip.",
+      "due": "this afternoon",
+      "segment_ids": [
+        "seg_013",
+        "seg_014"
+      ]
+    },
+    {
+      "owner": "agent",
+      "action": "Follow up with what to test after the customer applies the steps.",
+      "segment_ids": [
+        "seg_015"
+      ]
+    }
   ],
   "open_questions": [
-    {"text": "Whether the 60-second ICAP timeout alone explains the failures, or Core archive limits also play a part.", "segment_ids": ["seg_009", "seg_011"], "uncertain": true}
+    {
+      "text": "Whether the 60-second ICAP timeout alone explains the failures, or Core archive limits also play a part.",
+      "segment_ids": [
+        "seg_009",
+        "seg_011"
+      ],
+      "uncertain": true
+    }
   ],
   "third_party_components": []
 }

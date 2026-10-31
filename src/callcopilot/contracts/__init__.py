@@ -1,7 +1,7 @@
 from .meeting import MeetingContext
 from .outputs import (
-    ChatEvent, ChatResult, Citation, Claim, ClaimToVerify, EmailCore, EmailDraft,
-    MeetingSummary, NextAction, ProductInfo, SummaryCore, ThirdPartyComponent, ToolUse,
+    CallBrief, ChatEvent, ChatResult, Citation, Claim, ClaimToVerify, EmailCore, EmailDraft,
+    MeetingSummary, NextAction, ProductInfo, RecNote, SummaryContent, SummaryCore, ThirdPartyComponent, ToolUse,
 )
 from .recommendations import Recommendation, RecommendationSet, Source, SourceType
 from .style import EmailOptions, GlossaryEntry, StyleProfile

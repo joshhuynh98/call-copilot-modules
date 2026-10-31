@@ -1,7 +1,14 @@
 {
   "subject": "Follow-up on your large upload failures (MetaDefender ICAP Server)",
-  "body": "Hi Dana,\n\nThanks for your time today. Here is a quick recap.\n\nWhat we found: uploads over about 50 MB fail after roughly a minute because MetaDefender ICAP Server stops waiting 60 seconds for the scan result of large zip archives, then returns the 500 error to your portal.\n\nNext steps:\n1. Me: confirm the exact timeout and archive settings in the documentation and send you the steps.\n2. You: send the full ICAP Server log for one failed upload and the size of your largest zip, this afternoon.\n3. Me: follow up with what to test once you have applied the steps.\n\nPlease hold off changing the timeout until you have my steps, so we only change one thing at a time.\n\nMore background on the timeout setting: https://docs.example-opswat.invalid/icap/configuration/scan-timeouts",
+  "body": "Hi Dana,\n\nIssue: uploads over about 50 MB fail after roughly a minute.\n\nWhat we found:\n- ICAP Server stops waiting for Core after 60 seconds, then returns the 500 error to your portal.\n- The failing files are mostly large zip archives, up to about 80 MB.\n\nNext steps:\n1. You: send the full ICAP Server log for one failed upload and the size of your largest zip, this afternoon.\n2. Me: confirm the exact timeout and archive settings and send you the steps.\n3. Me: tell you what to test once you have applied them.\n\nPlease keep the timeout unchanged until you have my steps, so we only change one thing at a time.\n\nBackground on the timeout setting: https://docs.example-opswat.invalid/icap/configuration/scan-timeouts",
   "claims_needing_verification": [
-    {"claim": "The 60-second ICAP timeout is the sole cause of the failures.", "reason": "Core archive limits may also play a part; not yet confirmed.", "segment_ids": ["seg_009", "seg_011"]}
+    {
+      "claim": "The 60-second ICAP timeout is the sole cause of the failures.",
+      "reason": "Core archive limits may also play a part; not yet confirmed.",
+      "segment_ids": [
+        "seg_009",
+        "seg_011"
+      ]
+    }
   ]
 }

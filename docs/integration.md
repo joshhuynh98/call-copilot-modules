@@ -24,7 +24,7 @@ for event in chat.ask("What should I try next?"):
 
 | Endpoint | Body | Returns |
 |---|---|---|
-| `POST /v1/summary` | `{transcript}` | `MeetingSummary` |
+| `POST /v1/summary` | `{transcript, recommendations?}` | `MeetingSummary` (grouped, v2.0; includes `recommendation_notes` when recommendations are given) |
 | `POST /v1/email` | `{transcript, style_profile, recommendations?, summary?, options?}` | `EmailDraft` |
 | `POST /v1/email/check` | `{subject, body, recommendations?, summary?, options?, signature?}` | `EmailReview`: `{passed, checks[], fixes[], suggested_body?}` for an edited draft |
 | `POST /v1/recommendations/evaluate` | `{recommendations, transcript?}` | `{passed, checks[]}` |

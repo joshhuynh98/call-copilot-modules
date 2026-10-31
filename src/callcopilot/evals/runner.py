@@ -116,7 +116,7 @@ def run_scenario(sid: str, config: LLMConfig, judge: Judge | None) -> ScenarioRe
     rep.sections["recommendations"] = _recs_section(sc)
     llm = make_llm(config, sc.transcript)
     try:
-        summary = run_summary(sc.transcript, config, llm)
+        summary = run_summary(sc.transcript, config, llm, sc.recommendations)
         rep.sections["summary"] = _summary_section(sc, summary)
         draft = run_email(sc.transcript, summary, sc.style, sc.recommendations, config, llm=llm)
         rep.sections["email"] = _email_section(sc, summary, draft)
@@ -129,6 +129,7 @@ def run_scenario(sid: str, config: LLMConfig, judge: Judge | None) -> ScenarioRe
             golden = MeetingSummary(**sc.golden_summary.model_dump())
             for res in (judge.summary_faithfulness(sc.transcript, summary), judge.next_actions(sc.transcript, summary, golden),
                         judge.email_tone(sc.transcript.metadata.case_id, sc.style, draft),
+                        judge.clarity_conciseness(sc.transcript.metadata.case_id, summary, draft),
                         judge.recommendation_relevance(sc.transcript, sc.recommendations)):
                 rep.judge.append(asdict(res))
         except Exception as exc:

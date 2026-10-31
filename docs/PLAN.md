@@ -17,6 +17,9 @@ Approved plan for the modules I own. Timeline: 2 weeks; build fast, leave time t
 | Data format between modules | Unknown yet. We define our own contracts now; an AI-assisted adapter can convert/integrate later. Contracts are lenient so adapters have room. |
 | Links in customer emails | **Public docs only.** The email may refer to internal work generically but must not contain Jira ticket ids or Atlassian/internal-KB links. Enforced in code (see [email-rules.md](email-rules.md)). |
 | Meetings in emails | No offer/request for calls or meetings unless `allow_meeting_offer=true`. |
+| Style of summary and email | Concise, minimal or no filler. Plain English: easy to understand, not childish. Lists (bullets or numbered) where applicable. See [ADR 0007](decisions/0007-organise-first-summary.md). |
+| Messy input | The AI reviews it first and groups it logically (issues, what happened before and during the call, findings, next steps by owner, open questions) before anything is written. Duplicate or unrelated recommendations are set aside. |
+| Email lists | Plain-text numbered and dash lines are allowed; other markdown is still not. |
 | Third-party products | OPSWAT is not responsible. Email/chat state it is out of scope and give no troubleshooting for it. |
 | AI server | Undecided (Claude API or local OpenAI-compatible server). Design works for either via env vars only. |
 
@@ -37,6 +40,6 @@ Approved plan for the modules I own. Timeline: 2 weeks; build fast, leave time t
 6. Recommendations: `rank`, `trigger_segment_ids` and `sources[].type` are required by our quality bar. Can the recommendation module produce them?
 7. How are internal vs public docs distinguished at source? We rely on `sources[].type == public_doc` for customer-visible links.
 
-## Build order (all done unless marked)
+## Build order
 
 See [BUILD_LOG.md](BUILD_LOG.md).

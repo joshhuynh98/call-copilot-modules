@@ -5,8 +5,9 @@ import re
 from callcopilot.contracts import MeetingSummary, Transcript
 
 from .base import CheckResult
+from .style import check_style
 
-MAX_PLAIN_WORDS = 120
+MAX_PLAIN_WORDS = 80  # prompt asks for <= 60; this is the hard ceiling
 
 
 def check_summary(summary: MeetingSummary, transcript: Transcript) -> list[CheckResult]:
@@ -21,8 +22,8 @@ def check_summary(summary: MeetingSummary, transcript: Transcript) -> list[Check
     out.append(CheckResult("claims_grounded_or_uncertain", not ungrounded, [f"no evidence and not marked uncertain: {t}" for t in ungrounded]))
 
     missing = []
-    if not summary.issue.text.strip():
-        missing.append("issue")
+    if not any(i.text.strip() for i in summary.issues):
+        missing.append("issues")
     if not summary.next_actions:
         missing.append("next_actions")
     if not summary.plain_language.strip():
@@ -41,6 +42,11 @@ def check_summary(summary: MeetingSummary, transcript: Transcript) -> list[Check
     flagged = set(summary.low_confidence_segment_ids)
     expected = set(transcript.low_confidence_ids())
     out.append(CheckResult("low_confidence_segments_listed", flagged >= expected, [f"missing: {sorted(expected - flagged)}"] if flagged < expected else []))
+
+    # Soft: wording. Same rules as the email (concise, no filler, plain sentences), applied to the summary text.
+    text = summary.plain_language + "\n" + "\n".join(
+        [f"- {c.text}" for c in summary.all_claims()] + [f"- {a.action}" for a in summary.next_actions])
+    out += check_style(text)
     return out
 
 

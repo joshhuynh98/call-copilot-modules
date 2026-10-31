@@ -131,9 +131,9 @@ class ChatSession:
         extra = ", search_transcript(query)" if self._truncated else ""
         protocol = (PROTOCOL_NATIVE if native else PROTOCOL_PROMPTED).format(rounds=MAX_TOOL_ROUNDS, extra=extra)
         return load_prompt("chat").render_system(
-            untrusted_notice=UNTRUSTED_NOTICE, tool_protocol=protocol,
+            untrusted_notice=UNTRUSTED_NOTICE, style_rules=load_prompt("style_rules").system, tool_protocol=protocol,
             case_line=f"{meta.case_id}, customer {meta.customer_name}, product {meta.product or 'unknown'}",
-            summary=json.dumps(m.summary.model_dump(exclude={"meta"}), indent=1) if m.summary else "(not generated yet)",
+            summary=json.dumps(m.summary.model_dump(exclude={"meta", "recommendation_notes"}), indent=1) if m.summary else "(not generated yet)",
             recommendations=self._recs_text(),
             email=(f"Subject: {m.email_draft.subject}\n\n{m.email_draft.body}" if m.email_draft else "(none yet)"),
             transcript_block=self._transcript_block(),

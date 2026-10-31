@@ -35,6 +35,7 @@ STATIC = Path(__file__).parent / "static"
 
 class SummaryRequest(BaseModel):
     transcript: Transcript
+    recommendations: RecommendationSet | None = None  # triaged (duplicates / unrelated items flagged) when given
 
 
 class EmailRequest(BaseModel):
@@ -123,12 +124,12 @@ def create_app(config: LLMConfig | None = None, backend=None, *, cors_origins: l
     # -- stateless ---------------------------------------------------------------------------
     @router.post("/v1/summary", response_model=MeetingSummary)
     def summary(req: SummaryRequest):
-        return run_summary(req.transcript, cfg())
+        return run_summary(req.transcript, cfg(), recommendations=req.recommendations)
 
     @router.post("/v1/email", response_model=EmailDraft)
     def email(req: EmailRequest):
         llm = make_llm(cfg(), req.transcript)
-        s = req.summary or run_summary(req.transcript, cfg(), llm)
+        s = req.summary or run_summary(req.transcript, cfg(), llm, req.recommendations)
         return run_email(req.transcript, s, req.style_profile, req.recommendations, cfg(), req.options, llm)
 
     @router.post("/v1/email/check", response_model=EmailReview)
@@ -157,7 +158,7 @@ def create_app(config: LLMConfig | None = None, backend=None, *, cors_origins: l
     @router.post("/v1/meetings/{meeting_id}/summary", response_model=MeetingSummary)
     def meeting_summary(meeting_id: str):
         ctx = meeting(meeting_id)
-        ctx.summary = run_summary(ctx.transcript, cfg())
+        ctx.summary = run_summary(ctx.transcript, cfg(), recommendations=ctx.recommendations)
         return ctx.summary
 
     @router.post("/v1/meetings/{meeting_id}/email", response_model=EmailDraft)
@@ -166,7 +167,7 @@ def create_app(config: LLMConfig | None = None, backend=None, *, cors_origins: l
         if ctx.style_profile is None:
             raise HTTPException(422, "This meeting has no style_profile; PUT it with one first.")
         llm = make_llm(cfg(), ctx.transcript)
-        ctx.summary = ctx.summary or run_summary(ctx.transcript, cfg(), llm)
+        ctx.summary = ctx.summary or run_summary(ctx.transcript, cfg(), llm, ctx.recommendations)
         ctx.email_options = (req.options if req else None) or ctx.email_options
         ctx.email_draft = run_email(ctx.transcript, ctx.summary, ctx.style_profile, ctx.recommendations, cfg(), ctx.email_options, llm)
         return ctx.email_draft

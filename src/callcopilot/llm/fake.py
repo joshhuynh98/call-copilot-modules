@@ -4,7 +4,8 @@ It exists so the demo, unit tests and the evals' deterministic checks run with n
 the plumbing and the checkers, not model quality; judge-based quality evals need a real server.
 
 It finds the scenario via `Tag.case_id` (the transcript's case id) and answers by `Tag.task`:
-  summary / summary_reduce -> golden/summary.json
+  organize / organize_reduce -> the golden summary's grouped content as a brief (+ recommendation notes)
+  summary                  -> golden/summary.json
   email                    -> golden/email.json
   chat                     -> rules in golden/chat.json (plus a tiny tool-result-aware fallback)
 """
@@ -14,6 +15,7 @@ import json
 import re
 from collections.abc import Iterator
 
+from callcopilot.contracts import CallBrief
 from callcopilot.sources import find_scenario_by_case_id
 
 from .client import LLMClient
@@ -43,7 +45,9 @@ class FakeLLM(LLMClient):
         scenario = find_scenario_by_case_id(tag.case_id)
         if scenario is None:
             raise LLMError(f"The fake AI provider has no fixture scenario for case '{tag.case_id}'. Use a real AI server for other data.")
-        if tag.task in ("summary", "summary_reduce"):
+        if tag.task in ("organize", "organize_reduce"):
+            return self._brief(scenario).model_dump_json(), None
+        if tag.task == "summary":
             return scenario.golden_summary.model_dump_json(), None
         if tag.task == "email":
             return scenario.golden_email.model_dump_json(), None
@@ -53,6 +57,15 @@ class FakeLLM(LLMClient):
                 return "TOOL_CALL " + json.dumps({"name": call.name, "arguments": call.arguments}), None
             return text, call
         raise LLMError(f"The fake AI provider has no fixture for task '{tag.task}'.")
+
+    @staticmethod
+    def _brief(scenario) -> CallBrief:
+        """Brief = the golden summary's grouped content; notes come from the golden file, else 'all relevant'."""
+        raw = scenario._json("golden/summary.json")
+        notes = raw.get("recommendation_notes") or [
+            {"rec_id": r.id, "relevant": True, "issue": 0 if raw.get("issues") else None} for r in scenario.recommendations.recommendations
+        ]
+        return CallBrief.model_validate({**{k: v for k, v in raw.items() if k != "plain_language"}, "recommendation_notes": notes})
 
     @staticmethod
     def _split_turn(messages: list[Message]) -> tuple[str, list[str]]:

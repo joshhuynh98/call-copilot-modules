@@ -93,5 +93,5 @@ def test_eval_report_flags_a_regression(icap, monkeypatch):
 def test_judge_scores_when_a_server_is_available():
     judge = Judge(LLMConfig(provider="openai", url="http://x", model="m"), client=ScriptedLLM(['{"score": 4, "reasons": "ok"}']))
     rep = run_scenario("icap_upload_timeouts", FAKE, judge)
-    assert [j["rubric"] for j in rep.judge] == ["summary_faithfulness", "next_actions", "email_tone", "recommendation_relevance"]
+    assert [j["rubric"] for j in rep.judge] == ["summary_faithfulness", "next_actions", "email_tone", "clarity_conciseness", "recommendation_relevance"]
     assert all(j["score"] == 4 for j in rep.judge)

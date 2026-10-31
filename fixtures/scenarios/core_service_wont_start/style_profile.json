@@ -5,12 +5,23 @@
   "tone": "calm, precise and structured; numbered steps; formal but polite; no contractions",
   "preferred_language": "en",
   "glossary": [
-    {"term": "Core", "preferred": "MetaDefender Core"},
-    {"term": "bug", "preferred": "known issue", "avoid": "bug"},
-    {"term": "ticket", "preferred": "case", "avoid": "ticket"}
+    {
+      "term": "Core",
+      "preferred": "MetaDefender Core"
+    },
+    {
+      "term": "bug",
+      "preferred": "known issue",
+      "avoid": "bug"
+    },
+    {
+      "term": "ticket",
+      "preferred": "case",
+      "avoid": "ticket"
+    }
   ],
   "sample_emails": [
-    "Hello Elaine,\n\nThank you for your time today. Below is a short recap.\n\nWhat we found: the licence on the server had expired, so the service stopped after starting.\n\nNext steps:\n1. You: apply the renewed licence file and restart the service.\n2. Me: confirm the expiry date on our side.\n\nKind regards,\nJordan"
+    "Hello Elaine,\n\nIssue: the service stopped after starting.\n\nWhat we found:\n- The licence on the server had expired.\n\nNext steps:\n1. You: apply the renewed licence file and restart the service.\n2. Me: confirm the expiry date on our side.\n\nKind regards,\nJordan"
   ],
   "signature": "Kind regards,\nJordan Okafor\nSenior Support Engineer, OPSWAT"
 }

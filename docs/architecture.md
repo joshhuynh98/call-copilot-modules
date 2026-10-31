@@ -29,9 +29,13 @@ Every LLM call goes through one interface, `LLMClient` (`complete()` and `stream
 - **Policy** (`policy.py`) + **checks** (`checks/`): one set of content rules used by both the generators (repair/enforce) and the evals.
 - **Fake provider**: serves each fixture scenario's golden outputs (keyed by `Tag.task` + `Tag.case_id`, which are never sent to real servers). It proves plumbing and checkers, not model quality.
 
-## Summary module
+## Summary module (organise first, then write; ADR 0007)
 
-`summarize()` renders the transcript with `[seg_id] SPEAKER: text` lines (translated text, `[LOW CONFIDENCE]` flags), wraps it as untrusted data, and asks for `SummaryCore` JSON. If the estimated transcript size exceeds the token budget (`AI_MAX_CONTEXT_TOKENS`, default 12000) it chunks by segments with a 2-segment overlap, summarises each chunk, then merges with a reduce prompt. Afterwards, code (not the model) removes evidence ids that do not exist, marks claims without evidence as `uncertain`, fills `case_id` and `low_confidence_segment_ids`.
+1. **Organise** (`organize` prompt): the model reads the transcript (`[seg_id] SPEAKER: text` lines, translated text, `[LOW CONFIDENCE]` flags, wrapped as untrusted data) and the recommendations, and sorts them into a `CallBrief`: issues, before the call, during the call, findings, next actions by owner, open questions, third-party components. It merges repeats, orders items by time, uses a speaker's correction (or marks the item uncertain), and flags duplicate or unrelated recommendations. If the transcript exceeds the token budget (`AI_MAX_CONTEXT_TOKENS`, default 12000) it is organised chunk by chunk (2-segment overlap) and merged with `organize_reduce`.
+2. **Write** (`summary` prompt + `style_rules`): rewrites the brief as short plain-English bullets without changing facts.
+3. **Guards in code:** facts the writer dropped are restored from the brief (sections, next actions, product, third-party parts) and doubt flags are never lost; evidence ids that do not exist are removed; claims without evidence become `uncertain`; `case_id`, `low_confidence_segment_ids` and the recommendation triage notes are filled in.
+
+Cost: two model calls for a normal call, more for a long one. The email uses the triaged recommendations (duplicates and unrelated items never reach it); the chatbot still shows the agent the full list.
 
 ## Decision records
 
@@ -43,3 +47,4 @@ Every LLM call goes through one interface, `LLMClient` (`complete()` and `stream
 | [0004](decisions/0004-tools-prompted-by-default.md) | Prompted tool protocol by default, native opt-in; search-before-unknown guard in code | Works on any model; the rule is enforced, not just requested |
 | [0005](decisions/0005-email-rules-enforced-in-code.md) | Email hard rules enforced by checks + repair + last-resort sanitiser | Prompts alone are not reliable; customers must never see ticket ids or internal links |
 | [0006](decisions/0006-redaction-before-llm.md) | Reversible redaction wrapper around any client | Call content is customer data; the AI server may be external |
+| [0007](decisions/0007-organise-first-summary.md) | Organise first, then write; concise plain-English style; recommendation triage | Messy input must be grouped before it is written up; style is a product requirement |

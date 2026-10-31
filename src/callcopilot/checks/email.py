@@ -12,6 +12,7 @@ from callcopilot import policy
 from callcopilot.contracts import EmailDraft, EmailOptions, MeetingSummary, RecommendationSet
 
 from .base import CheckResult
+from .style import check_style
 
 MAX_PARAGRAPH_WORDS = 60
 MAX_SUBJECT_CHARS = 100
@@ -26,12 +27,13 @@ class EmailPolicy:
     has_third_party: bool = False  # summary found a third-party component -> scope statement required
 
     @classmethod
-    def build(cls, options: EmailOptions, recs: RecommendationSet | None, summary: MeetingSummary | None) -> "EmailPolicy":
+    def build(cls, options: EmailOptions, recs: RecommendationSet | None, summary: MeetingSummary | None,
+              link_recs: RecommendationSet | None = None) -> "EmailPolicy":
+        """`recs` = everything provided (all its Jira keys are forbidden in the email);
+        `link_recs` = the triaged subset whose public links may be used (defaults to `recs`)."""
+        keys = {s.jira_key for s in recs.sources() if s.jira_key} if recs else set()
         allowed = set()
-        keys = set()
-        for s in recs.sources() if recs else []:
-            if s.jira_key:
-                keys.add(s.jira_key)
+        for s in (link_recs or recs).sources() if (link_recs or recs) else []:
             if s.customer_visible and not policy.is_internal_url(s.url):
                 allowed.add(s.url)
         components = [c.name for c in summary.third_party_components] if summary else []
@@ -83,6 +85,7 @@ def check_email(draft: EmailDraft, pol: EmailPolicy, *, signature: str = "") -> 
         out.append(CheckResult("third_party_scope_statement", ok, [] if ok else ["summary has third-party components but email has no out-of-scope statement"]))
     bad = policy.third_party_troubleshooting(body, pol.third_party_names)
     out.append(CheckResult("no_third_party_troubleshooting", not bad, [f"sentence: {s}" for s in bad]))
+    out += check_style(body)
     return out
 
 
@@ -91,7 +94,7 @@ def _strip_markdown(text: str) -> str:
     text = re.sub(r"</?[a-zA-Z][^>]*>", "", text)
     text = re.sub(r"(\*\*|__|`)", "", text)
     text = re.sub(r"(?m)^\s*#{1,6}\s+", "", text)
-    text = re.sub(r"(?m)^(\s*)[-*+•]\s+", r"\1", text)
+    text = re.sub(r"(?m)^(\s*)[*+•]\s+", r"\1- ", text)  # dash bullets are allowed; normalise the other markers
     text = re.sub(r"(?m)^\s*\|?\s*-{3,}[-|\s]*$", "", text)
     return text
 

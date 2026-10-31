@@ -1,6 +1,6 @@
 # Build log
 
-Status as of 2026-10-31 (week 1 of 2), after the front-end support round. Nothing here has been run against a real AI server yet; all runs use the fake provider.
+Status as of 2026-10-31 (week 1 of 2), after the summary rework (organise first, concise style). Nothing here has been run against a real AI server yet; all runs use the fake provider.
 
 ## Done
 
@@ -19,8 +19,9 @@ Status as of 2026-10-31 (week 1 of 2), after the front-end support round. Nothin
 | API + demo | FastAPI endpoints, SSE chat, static demo page | `tests/test_api_and_evals.py`, manual `callcopilot serve --fake` |
 | Docs | plan, architecture, 6 ADRs, integration guide, email rules, chatbot, recommendations spec, evals | `docs/` |
 | Front-end support | CORS via `COPILOT_CORS_ORIGINS`; optional `COPILOT_API_KEY` (`X-API-Key`, constant-time compare) on all `/v1` routes; uniform `{"error"}` responses; `POST /v1/email/check` and `/v1/meetings/{id}/email/check` (`review_email`: checks, fixes, `suggested_body`) for edited drafts; OpenAPI spec exported to `contracts/openapi.json`; demo page sends the key; [frontend.md](frontend.md) | `tests/test_frontend_support.py` |
+| Summary rework (ADR 0007) | Two-stage summary: organise (group, dedupe, order, resolve corrections, triage recommendations) then write; new grouped shape (`issues`, `before_call`, `in_call`, next steps by owner; `schema_version` 2.0); shared `style_rules` prompt in summary, email and chat; soft style checks and a `clarity_conciseness` judge rubric; email layout with labelled sections and plain-text dash/numbered lists; goldens rewritten without filler | `tests/test_organise_and_style.py` |
 
-139 tests pass offline.
+159 tests pass offline.
 
 ## Fixes found while building (kept for context)
 
@@ -28,6 +29,7 @@ Status as of 2026-10-31 (week 1 of 2), after the front-end support round. Nothin
 - Scope-statement regex missed "your X and Y teams" / "their team"; widened. Hyphenated terms ("SSL-inspection") now match; version check no longer matches inside longer numbers.
 - Redaction missed short company forms ("Kestrel Freight's"); metadata names now include legal-suffix-stripped and first-word forms.
 - A template chat rule ("next step") shadowed the "formal" rewrite rule; reordered.
+- Style rules first showed up in the goldens themselves (every golden email opened with a thank-you line, one summary line ran to 32 words); the goldens were rewritten and are now checked against the style rules in tests.
 
 ## Not done / next
 
@@ -43,4 +45,5 @@ Status as of 2026-10-31 (week 1 of 2), after the front-end support round. Nothin
 - Fake provider proves plumbing and checks, not model quality.
 - Redaction is regex-based; free-text names not in the call metadata are not caught. Four-part dotted numbers look like IPs.
 - Third-party troubleshooting detection is a heuristic (term list + verbs + scope phrases).
+- Style (concise, plain English, no filler) is only approximated by soft checks (filler phrases, line and sentence length); the judge rubric and a human read are the real test. The summary now costs two model calls.
 - Chat state and meetings are in memory (run one worker). The API key is a single shared secret, not per-user auth; CORS and the key are off unless configured.

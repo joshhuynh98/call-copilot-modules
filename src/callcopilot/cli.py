@@ -70,8 +70,8 @@ def cmd_scenarios(args):
 def cmd_summary(args):
     from callcopilot.pipeline import run_summary
     cfg = _config(args)
-    t, *_ = _load_inputs(args)
-    s = run_summary(t, cfg)
+    t, recs, *_ = _load_inputs(args)
+    s = run_summary(t, cfg, recommendations=recs)
     print(s.model_dump_json(indent=2) if args.json else render_summary(s))
 
 
@@ -79,7 +79,7 @@ def cmd_email(args):
     from callcopilot.pipeline import run_email, run_summary
     cfg = _config(args)
     t, recs, style, _ = _load_inputs(args)
-    summary = run_summary(t, cfg)
+    summary = run_summary(t, cfg, recommendations=recs)
     opts = EmailOptions(allow_meeting_offer=args.allow_meeting_offer, max_words=args.max_words)
     d = run_email(t, summary, _need_style(style), recs, cfg, opts)
     print(d.model_dump_json(indent=2) if args.json else render_email(d))
@@ -92,7 +92,7 @@ def cmd_chat(args):
     cfg = _config(args)
     t, recs, style, sc = _load_inputs(args)
     llm = make_llm(cfg, t)
-    summary = run_summary(t, cfg, llm)
+    summary = run_summary(t, cfg, llm, recs)
     draft = run_email(t, summary, style, recs, cfg, llm=llm) if style else None
     session = ChatSession(MeetingContext(transcript=t, recommendations=recs, style_profile=style, summary=summary, email_draft=draft),
                           llm, FixtureToolBackend(), cfg)
@@ -123,7 +123,7 @@ def cmd_demo(args):
     print(t.render() + "\n")
     print(render_cheatsheet(recs) + "\n")
     llm = make_llm(cfg, t)
-    summary = run_summary(t, cfg, llm)
+    summary = run_summary(t, cfg, llm, recs)
     print(render_summary(summary) + "\n")
     draft = run_email(t, summary, style, recs, cfg, llm=llm)
     print(render_email(draft))
