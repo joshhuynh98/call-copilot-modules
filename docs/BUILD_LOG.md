@@ -1,0 +1,45 @@
+# Build log
+
+Status as of 2026-10-31 (week 1 of 2). Nothing here has been run against a real AI server yet; all runs use the fake provider.
+
+## Done
+
+| Step | What | Evidence |
+|---|---|---|
+| Scaffold | `pyproject.toml`, `.env.example` (all blank), `.gitignore` (`.env`, `.venv`, eval reports), README | `uv pip install -e ".[dev]"` |
+| Contracts | Transcript, RecommendationSet, StyleProfile/EmailOptions, tool Protocol + SearchHit, MeetingSummary, EmailDraft, ChatEvent/ChatResult, MeetingContext; JSON Schema exported to `contracts/` | `callcopilot schemas` |
+| LLM layer | env-only config with fail-fast errors, `LLMClient` interface, OpenAI-compatible + Anthropic adapters (retries, streaming, tool calls), fake provider, structured output + repair loop | `tests/test_config.py`, `test_adapters.py`, `test_structured_and_redaction.py` |
+| Safety | reversible redaction wrapper (incl. streams), untrusted-content wrapping | tests as above |
+| Fixtures | 5 fictional scenarios with transcript, recommendations, style profile, KB, goldens: ICAP timeouts, Core won't start, Sandbox disk full, third-party VDI/SSL-inspection issue, noisy call | `tests/test_fixtures.py` |
+| Summary | one-pass and map-reduce, evidence clean-up in code | `tests/test_modules.py` |
+| Email | generate → check → repair → enforce; public links only, no ticket ids, no meeting offers, third-party scope | `tests/test_checks.py`, `test_modules.py` |
+| Chatbot | streaming, prompted + native tool modes, search-before-unknown guard, injection-safe wrapping, link/email sanitising, long-transcript tool | `tests/test_chat.py` |
+| Recommendation spec + checker | quality bar as 9 named checks; CLI and HTTP endpoint | `tests/test_checks.py`, `docs/recommendations-spec.md` |
+| Evals | runner over all scenarios, judge (4 versioned rubrics), Markdown + JSON report | `callcopilot eval --fake`, [baseline-report.md](baseline-report.md) |
+| API + demo | FastAPI endpoints, SSE chat, static demo page | `tests/test_api_and_evals.py`, manual `callcopilot serve --fake` |
+| Docs | plan, architecture, 6 ADRs, integration guide, email rules, chatbot, recommendations spec, evals | `docs/` |
+
+125 tests pass offline.
+
+## Fixes found while building (kept for context)
+
+- Email meeting-offer regex first matched plain "during our call"; narrowed and covered by positive and negative tests.
+- Scope-statement regex missed "your X and Y teams" / "their team"; widened. Hyphenated terms ("SSL-inspection") now match; version check no longer matches inside longer numbers.
+- Redaction missed short company forms ("Kestrel Freight's"); metadata names now include legal-suffix-stripped and first-word forms.
+- A template chat rule ("next step") shadowed the "formal" rewrite rule; reordered.
+
+## Not done / next
+
+1. **Run against a real AI server** (Claude or local) and read the judge scores. Expect prompt tuning for weaker models; check `email_first_pass_clean` and `repairs` in `meta`.
+2. Agree the third-party term list and the open questions in [PLAN.md](PLAN.md) with the other module owners.
+3. Replace `FixtureToolBackend` with real docs/Jira/Confluence integrations (the Protocol is in `contracts/tools.py`).
+4. Real-format adapters for the transcript and recommendation modules once their output is known.
+5. Judge calibration: compare judge scores with a human read of 5–10 real outputs before trusting thresholds.
+6. Optional: conversation persistence beyond in-memory, auth on the HTTP API, a richer demo UI.
+
+## Known limits
+
+- Fake provider proves plumbing and checks, not model quality.
+- Redaction is regex-based; free-text names not in the call metadata are not caught. Four-part dotted numbers look like IPs.
+- Third-party troubleshooting detection is a heuristic (term list + verbs + scope phrases).
+- Chat state and meetings are in memory; the API has no authentication.
