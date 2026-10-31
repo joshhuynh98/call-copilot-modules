@@ -26,12 +26,14 @@ for event in chat.ask("What should I try next?"):
 |---|---|---|
 | `POST /v1/summary` | `{transcript}` | `MeetingSummary` |
 | `POST /v1/email` | `{transcript, style_profile, recommendations?, summary?, options?}` | `EmailDraft` |
+| `POST /v1/email/check` | `{subject, body, recommendations?, summary?, options?, signature?}` | `EmailReview`: `{passed, checks[], fixes[], suggested_body?}` for an edited draft |
 | `POST /v1/recommendations/evaluate` | `{recommendations, transcript?}` | `{passed, checks[]}` |
 | `PUT /v1/meetings/{id}` | `MeetingContext` | registers a meeting for chat |
 | `POST /v1/meetings/{id}/summary` / `/email` | optional options | generates and stores on the meeting |
+| `POST /v1/meetings/{id}/email/check` | `{subject, body}` | `EmailReview` using the meeting's recommendations, summary and options |
 | `POST /v1/meetings/{id}/chat` | `{message}` | SSE stream of `ChatEvent` |
 
-Errors: `503 {"error": "..."}` if the AI server is not configured, `502` if it fails or returns unusable output.
+Errors: `{"error": "..."}` with `401` (bad `X-API-Key`), `404`, `502` (AI server failed or returned unusable output) or `503` (AI server not configured). Front-end specifics (CORS, API key, SSE, what to render): [frontend.md](frontend.md).
 
 ## Inputs we expect
 

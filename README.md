@@ -33,6 +33,8 @@ Configuration is **environment variables only** (or a `.env` file, which is giti
 | `AI_TOOL_MODE` | `prompted` (default, works on any model) or `native` (provider function calling) |
 | `AI_JUDGE_*` | Same names with an `AI_JUDGE_` prefix for the eval judge; unset fields fall back to `AI_*` |
 | `REDACTION_MODE` | `basic` (default) or `off`. `REDACTION_CATEGORIES` restricts to e.g. `email,phone` |
+| `COPILOT_CORS_ORIGINS` | HTTP API: browser origins allowed to call it (comma-separated, or `*`). Blank = no CORS |
+| `COPILOT_API_KEY` | HTTP API: if set, `/v1` requests need an `X-API-Key` header. Blank = open |
 
 If a required variable is missing you get a one-line message naming it (no stack trace). Switching provider is a config change: nothing in the module logic knows which provider is used.
 
@@ -45,8 +47,9 @@ If a required variable is missing you get a one-line message naming it (no stack
 | Chatbot | `callcopilot chat`, `POST /v1/meetings/{id}/chat` (SSE), `ChatSession` | [docs/chatbot.md](docs/chatbot.md) |
 | Recommendation spec + eval | `callcopilot recs-eval file.json`, `POST /v1/recommendations/evaluate` | [docs/recommendations-spec.md](docs/recommendations-spec.md) |
 | Evals | `callcopilot eval` | [docs/evals.md](docs/evals.md) |
+| Web front end | HTTP API + SSE chat, OpenAPI in `contracts/openapi.json` | [docs/frontend.md](docs/frontend.md) |
 
-Start with [docs/PLAN.md](docs/PLAN.md) (decisions and open questions), then [docs/integration.md](docs/integration.md) if you are integrating a module, and [docs/BUILD_LOG.md](docs/BUILD_LOG.md) for status.
+Start with [docs/PLAN.md](docs/PLAN.md) (decisions and open questions), then [docs/integration.md](docs/integration.md) if you are integrating a module, [docs/frontend.md](docs/frontend.md) if you are building the UI, and [docs/BUILD_LOG.md](docs/BUILD_LOG.md) for status.
 
 ## Plugging in the real modules
 

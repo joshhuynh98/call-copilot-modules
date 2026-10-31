@@ -22,8 +22,10 @@ input[type=text]{width:70%}
 </section>
 <script>
 const $=id=>document.getElementById(id); let ctx=null, mid="demo";
+const KEY=new URLSearchParams(location.search).get("key"); // open /?key=... when COPILOT_API_KEY is set
+const H=(h={})=>KEY?{...h,"X-API-Key":KEY}:h;
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-async function api(path,opts){const r=await fetch(path,opts); if(!r.ok){throw new Error((await r.json().catch(()=>({}))).error||r.statusText)} return r.json()}
+async function api(path,opts={}){const r=await fetch(path,{...opts,headers:H(opts.headers)}); if(!r.ok){throw new Error((await r.json().catch(()=>({}))).error||r.statusText)} return r.json()}
 const put=()=>api(`/v1/meetings/${mid}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(ctx)});
 async function load(id){
   ctx=await api(`/v1/scenarios/${id}`); await put();
@@ -40,7 +42,7 @@ async function send(){
   const q=$("q").value.trim(); if(!q) return; $("q").value="";
   const log=$("chatlog"); log.insertAdjacentHTML("beforeend",`<p class=me>You: ${esc(q)}</p>`);
   const p=document.createElement("p"); p.textContent="Copilot: "; log.appendChild(p);
-  const r=await fetch(`/v1/meetings/${mid}/chat`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:q})});
+  const r=await fetch(`/v1/meetings/${mid}/chat`,{method:"POST",headers:H({"Content-Type":"application/json"}),body:JSON.stringify({message:q})});
   const reader=r.body.getReader(), dec=new TextDecoder(); let buf="";
   for(;;){const {done,value}=await reader.read(); if(done)break; buf+=dec.decode(value,{stream:true});
     let i; while((i=buf.indexOf("\n\n"))>=0){const raw=buf.slice(0,i); buf=buf.slice(i+2);

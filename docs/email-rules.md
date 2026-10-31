@@ -22,6 +22,10 @@
 5. The signature from the style profile is appended in code.
 6. `claims_needing_verification` = the model's list + every uncertain claim from the summary + an unclear product/version.
 
+## Re-checking an edited draft
+
+`review_email(subject, body, policy, signature)` (HTTP: `POST /v1/email/check`, or `/v1/meetings/{id}/email/check` using the stored meeting) runs the same checks on any text, so a UI can validate the agent's edits. It returns `passed`, per-rule `checks`, the `fixes` the sanitiser would apply and a `suggested_body` when something can be auto-fixed.
+
 ## Options
 
 `EmailOptions(allow_meeting_offer=False, max_words=150)`. CLI: `callcopilot email --scenario X --allow-meeting-offer --max-words 120`.

@@ -1,6 +1,6 @@
 # Build log
 
-Status as of 2026-10-31 (week 1 of 2). Nothing here has been run against a real AI server yet; all runs use the fake provider.
+Status as of 2026-10-31 (week 1 of 2), after the front-end support round. Nothing here has been run against a real AI server yet; all runs use the fake provider.
 
 ## Done
 
@@ -18,8 +18,9 @@ Status as of 2026-10-31 (week 1 of 2). Nothing here has been run against a real 
 | Evals | runner over all scenarios, judge (4 versioned rubrics), Markdown + JSON report | `callcopilot eval --fake`, [baseline-report.md](baseline-report.md) |
 | API + demo | FastAPI endpoints, SSE chat, static demo page | `tests/test_api_and_evals.py`, manual `callcopilot serve --fake` |
 | Docs | plan, architecture, 6 ADRs, integration guide, email rules, chatbot, recommendations spec, evals | `docs/` |
+| Front-end support | CORS via `COPILOT_CORS_ORIGINS`; optional `COPILOT_API_KEY` (`X-API-Key`, constant-time compare) on all `/v1` routes; uniform `{"error"}` responses; `POST /v1/email/check` and `/v1/meetings/{id}/email/check` (`review_email`: checks, fixes, `suggested_body`) for edited drafts; OpenAPI spec exported to `contracts/openapi.json`; demo page sends the key; [frontend.md](frontend.md) | `tests/test_frontend_support.py` |
 
-125 tests pass offline.
+139 tests pass offline.
 
 ## Fixes found while building (kept for context)
 
@@ -35,11 +36,11 @@ Status as of 2026-10-31 (week 1 of 2). Nothing here has been run against a real 
 3. Replace `FixtureToolBackend` with real docs/Jira/Confluence integrations (the Protocol is in `contracts/tools.py`).
 4. Real-format adapters for the transcript and recommendation modules once their output is known.
 5. Judge calibration: compare judge scores with a human read of 5–10 real outputs before trusting thresholds.
-6. Optional: conversation persistence beyond in-memory, auth on the HTTP API, a richer demo UI.
+6. Optional: conversation persistence beyond in-memory, real user authentication (the API key is a shared secret), live/incremental transcript endpoint, async jobs with progress for summary/email.
 
 ## Known limits
 
 - Fake provider proves plumbing and checks, not model quality.
 - Redaction is regex-based; free-text names not in the call metadata are not caught. Four-part dotted numbers look like IPs.
 - Third-party troubleshooting detection is a heuristic (term list + verbs + scope phrases).
-- Chat state and meetings are in memory; the API has no authentication.
+- Chat state and meetings are in memory (run one worker). The API key is a single shared secret, not per-user auth; CORS and the key are off unless configured.

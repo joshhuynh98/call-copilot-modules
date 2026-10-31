@@ -1,4 +1,4 @@
-"""Export JSON Schema for every contract to ./contracts/*.schema.json (for non-Python teammates)."""
+"""Export JSON Schema for every contract, plus the HTTP API's OpenAPI spec, to ./contracts/ (for non-Python teammates)."""
 import json
 
 from pydantic import BaseModel
@@ -28,6 +28,11 @@ def export(out_dir=REPO_ROOT / "contracts") -> list[str]:
             json.dumps(model.model_json_schema(), indent=2) + "\n", encoding="utf-8"
         )
         names.append(name)
+    from callcopilot.api import create_app  # imported here: the API module imports the contracts
+    from callcopilot.llm import LLMConfig
+    spec = create_app(LLMConfig(provider="fake"), cors_origins=[], api_key="").openapi()
+    (out_dir / "openapi.json").write_text(json.dumps(spec, indent=2) + "\n", encoding="utf-8")
+    names.append("openapi")
     return names
 
 
