@@ -4,10 +4,10 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-import callcopilot.api as api
-from callcopilot.evals.judge import Judge
-from callcopilot.evals.runner import render_report, run_all, run_scenario
-from callcopilot.llm import LLMConfig
+import callcopilot.app.api as api
+from callcopilot.app.evals.judge import Judge
+from callcopilot.app.evals.runner import render_report, run_all, run_scenario
+from callcopilot.shared.llm import LLMConfig
 from conftest import ScriptedLLM
 
 FAKE = LLMConfig(provider="fake")
@@ -76,7 +76,7 @@ def test_all_scenarios_pass_deterministic_evals_on_fake():
 
 def test_eval_report_flags_a_regression(icap, monkeypatch):
     """If the model output breaks a rule the report must say FAIL (here: golden email with a leaked ticket id)."""
-    import callcopilot.evals.runner as runner
+    import callcopilot.app.evals.runner as runner
     real = runner.run_email
 
     def leaky(*a, **k):

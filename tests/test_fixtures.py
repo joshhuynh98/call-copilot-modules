@@ -1,10 +1,12 @@
 """Every fixture scenario must be valid and its golden outputs must pass our own quality checks."""
 import pytest
 
-from callcopilot.checks import EmailPolicy, check_email, check_recommendations, failed
-from callcopilot.checks.summary import check_summary
-from callcopilot.contracts import EmailDraft, MeetingSummary
-from callcopilot.sources import list_scenarios, load_scenario
+from callcopilot.modules.email.checks import EmailPolicy, check_email
+from callcopilot.modules.recommendations.checks import check_recommendations
+from callcopilot.shared.checks import failed
+from callcopilot.modules.summary.checks import check_summary
+from callcopilot.shared.contracts import EmailDraft, MeetingSummary
+from callcopilot.shared.sources import list_scenarios, load_scenario
 
 SCENARIOS = list_scenarios()
 

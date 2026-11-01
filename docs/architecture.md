@@ -16,18 +16,22 @@
           MeetingSummary      EmailDraft           ChatEvent stream / ChatResult
 ```
 
-Every LLM call goes through one interface, `LLMClient` (`complete()` and `stream()`), in `src/callcopilot/llm/client.py`. Module code never imports a provider.
+Every LLM call goes through one interface, `LLMClient` (`complete()` and `stream()`), in `src/callcopilot/shared/llm/client.py`. Module code never imports a provider.
 
 ## Pieces
 
-- **Contracts** (`contracts/`): Pydantic models are the source of truth; JSON Schema is exported to the repo-root `contracts/` folder. Inputs are lenient (so the eval can report item-level failures); outputs are strict.
-- **Config** (`llm/config.py`): env vars only, fail-fast with an actionable message, blank key allowed, separate `AI_JUDGE_*`.
-- **Adapters**: `openai_adapter` (default; chat completions incl. SSE streaming and tool calls), `anthropic_adapter` (Messages API), `fake` (offline). Shared retry/backoff/readable errors live in `HTTPAdapter`. Add a provider by writing one adapter and one line in `llm/factory.py`.
-- **Structured output** (`llm/structured.py`): prompt with schema → extract JSON (tolerates fences/chatter) → validate with Pydantic → up to 2 repair turns feeding the errors back → clear error. No dependency on provider JSON modes.
-- **Prompts** (`prompts/<name>/vN.md`): versioned, separate from code, `{{placeholder}}` substitution. Prompt versions are recorded in outputs (`meta`).
-- **Safety**: reversible redaction before every call (`safety/redaction.py`), untrusted-content wrapping (`safety/untrusted.py`), logs never include raw transcripts.
-- **Policy** (`policy.py`) + **checks** (`checks/`): one set of content rules used by both the generators (repair/enforce) and the evals.
+- **Contracts** (`shared/contracts/`): Pydantic models are the source of truth; JSON Schema is exported to the repo-root `schemas/` folder. Inputs are lenient (so the eval can report item-level failures); outputs are strict.
+- **Config** (`shared/llm/config.py`): env vars only, fail-fast with an actionable message, blank key allowed, separate `AI_JUDGE_*`.
+- **Adapters**: `openai_adapter` (default; chat completions incl. SSE streaming and tool calls), `anthropic_adapter` (Messages API), `fake` (offline). Shared retry/backoff/readable errors live in `HTTPAdapter`. Add a provider by writing one adapter and one line in `shared/llm/factory.py`.
+- **Structured output** (`shared/llm/structured.py`): prompt with schema → extract JSON (tolerates fences/chatter) → validate with Pydantic → up to 2 repair turns feeding the errors back → clear error. No dependency on provider JSON modes.
+- **Prompts** (`modules/<module>/prompts/<name>/vN.md`, shared ones in `shared/prompts/`): versioned, separate from code, `{{placeholder}}` substitution. Prompt versions are recorded in outputs (`meta`).
+- **Safety**: reversible redaction before every call (`shared/safety/redaction.py`), untrusted-content wrapping (`shared/safety/untrusted.py`), logs never include raw transcripts.
+- **Policy** (`shared/policy.py`) + **checks** (`shared/checks.py` and `modules/<module>/checks.py`): one set of content rules used by both the generators (repair/enforce) and the evals.
 - **Fake provider**: serves each fixture scenario's golden outputs (keyed by `Tag.task` + `Tag.case_id`, which are never sent to real servers). It proves plumbing and checkers, not model quality.
+
+## Reference review (ADR 0008)
+
+Before the summary is organised, `shared/references/` opens every source the recommendations cite: public docs through plain HTTP with a real-browser fallback (Playwright), Jira and Confluence through an Atlassian MCP client. Each becomes a `SourceReview` carried on `MeetingSummary.source_reviews`. The organise stage judges the recommendations with the opened content; the email links only to pages that exist and support the action and sees one-line gists, never raw page text. See [reference-review.md](reference-review.md).
 
 ## Summary module (organise first, then write; ADR 0007)
 
@@ -47,4 +51,5 @@ Cost: two model calls for a normal call, more for a long one. The email uses the
 | [0004](decisions/0004-tools-prompted-by-default.md) | Prompted tool protocol by default, native opt-in; search-before-unknown guard in code | Works on any model; the rule is enforced, not just requested |
 | [0005](decisions/0005-email-rules-enforced-in-code.md) | Email hard rules enforced by checks + repair + last-resort sanitiser | Prompts alone are not reliable; customers must never see ticket ids or internal links |
 | [0006](decisions/0006-redaction-before-llm.md) | Reversible redaction wrapper around any client | Call content is customer data; the AI server may be external |
+| [0008](decisions/0008-open-sources-before-writing.md) | Open recommendation sources (docs pages, Jira, Confluence) before writing; email sees gists only | A dead or unsupported link must not reach a customer; internal text must not leak |
 | [0007](decisions/0007-organise-first-summary.md) | Organise first, then write; concise plain-English style; recommendation triage | Messy input must be grouped before it is written up; style is a product requirement |

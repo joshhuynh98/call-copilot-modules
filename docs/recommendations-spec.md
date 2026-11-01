@@ -2,7 +2,7 @@
 
 We do not build the recommendation engine. This is the spec for what good output looks like, and `check_recommendations` scores any payload (mock or real) against it.
 
-## Shape (`RecommendationSet`, JSON Schema in `contracts/recommendation_set.schema.json`)
+## Shape (`RecommendationSet`, JSON Schema in `schemas/recommendation_set.schema.json`)
 
 ```json
 { "case_id": "CASE-1", "recommendations": [{
@@ -39,7 +39,11 @@ The contract itself is lenient (it accepts items that miss the bar) so the repor
 .venv\Scripts\callcopilot recs-eval path\to\recommendations.json --transcript path\to\transcript.json -v
 ```
 
-or `POST /v1/recommendations/evaluate` with `{"recommendations": {...}, "transcript": {...}}`. The judge rubric `judge_recommendation_relevance` (versioned in `src/callcopilot/prompts/`) scores relevance 1–5 when an AI server is configured.
+or `POST /v1/recommendations/evaluate` with `{"recommendations": {...}, "transcript": {...}}`. The judge rubric `judge_recommendation_relevance` (versioned in `src/callcopilot/modules/recommendations/prompts/`) scores relevance 1–5 when an AI server is configured.
+
+## Sources are opened and read
+
+The summary step opens every cited source (public docs, Jira, Confluence) before writing, so a recommendation's links should resolve and should support its action. A dead link is dropped from the customer email and shown to the agent; a link whose opened content does not back the action gets `supported: false` and is not sent. Details and limits: [reference-review.md](reference-review.md).
 
 ## Triage when the input is messy
 

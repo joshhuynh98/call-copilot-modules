@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from callcopilot.llm import LLMClient, LLMResponse, StreamEvent
+from callcopilot.shared.llm import LLMClient, LLMResponse, StreamEvent
 
 
 class ScriptedLLM(LLMClient):
@@ -40,11 +40,11 @@ class EmptyBackend:
 
 @pytest.fixture
 def icap():
-    from callcopilot.sources import load_scenario
+    from callcopilot.shared.sources import load_scenario
     return load_scenario("icap_upload_timeouts")
 
 
 @pytest.fixture
 def vdi():
-    from callcopilot.sources import load_scenario
+    from callcopilot.shared.sources import load_scenario
     return load_scenario("third_party_vdi_issue")

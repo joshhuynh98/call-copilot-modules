@@ -1,12 +1,13 @@
 """Summary and email modules against scripted (misbehaving) models, plus the fake-provider happy path."""
 import json
 
-from callcopilot.checks import EmailPolicy, check_email, failed
-from callcopilot.contracts import MeetingSummary
-from callcopilot.llm import LLMConfig
+from callcopilot.modules.email.checks import EmailPolicy, check_email
+from callcopilot.shared.checks import failed
+from callcopilot.shared.contracts import MeetingSummary
+from callcopilot.shared.llm import LLMConfig
 from callcopilot.modules.email import draft_email
 from callcopilot.modules.summary import summarize
-from callcopilot.pipeline import make_llm, run_email, run_summary
+from callcopilot.app.pipeline import make_llm, run_email, run_summary
 from conftest import ScriptedLLM
 
 FAKE = LLMConfig(provider="fake")
@@ -36,7 +37,7 @@ def test_long_transcripts_are_map_reduced(icap):
 
 
 def test_summary_marks_low_confidence_segments(icap):
-    noisy = next(__import__("callcopilot.sources", fromlist=["x"]).load_scenario("messy_noisy_call").transcript for _ in [0])
+    noisy = next(__import__("callcopilot.shared.sources", fromlist=["x"]).load_scenario("messy_noisy_call").transcript for _ in [0])
     s = run_summary(noisy, FAKE)
     assert s.low_confidence_segment_ids == noisy.low_confidence_ids() and s.low_confidence_segment_ids
     assert s.product.uncertain and s.product.version is None
@@ -85,7 +86,7 @@ def test_email_gets_scope_statement_when_model_forgets(vdi):
 
 
 def test_uncertain_summary_points_become_claims_to_verify():
-    from callcopilot.sources import load_scenario
+    from callcopilot.shared.sources import load_scenario
     sc = load_scenario("messy_noisy_call")
     s = run_summary(sc.transcript, FAKE)
     d = run_email(sc.transcript, s, sc.style, sc.recommendations, FAKE)

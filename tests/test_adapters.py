@@ -3,7 +3,7 @@ import json
 import httpx
 import pytest
 
-from callcopilot.llm import LLMConfig, LLMError, Message, ToolSpec, client as client_mod, create_client
+from callcopilot.shared.llm import LLMConfig, LLMError, Message, ToolSpec, client as client_mod, create_client
 
 MSGS = [Message("system", "be brief"), Message("user", "hi")]
 TOOLS = [ToolSpec("search_docs", "search", {"type": "object", "properties": {"query": {"type": "string"}}})]

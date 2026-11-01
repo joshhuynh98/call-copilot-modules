@@ -1,9 +1,11 @@
 """Negative cases: every check must catch what it exists to catch."""
 import pytest
 
-from callcopilot import policy
-from callcopilot.checks import EmailPolicy, check_email, check_recommendations, enforce_email_text, failed
-from callcopilot.contracts import EmailDraft, MeetingSummary, Source, SourceType
+from callcopilot.shared import policy
+from callcopilot.modules.email.checks import EmailPolicy, check_email, enforce_email_text
+from callcopilot.modules.recommendations.checks import check_recommendations
+from callcopilot.shared.checks import failed
+from callcopilot.shared.contracts import EmailDraft, MeetingSummary, Source, SourceType
 
 DOC = "https://docs.example-opswat.invalid/icap/configuration/scan-timeouts"
 

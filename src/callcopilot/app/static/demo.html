@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Call Copilot demo</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--line:#e2e5ea;--text:#1d2530;--muted:#6b7686;--accent:#2457d6;--ok:#17803d;--warn:#b45309;--bad:#b42318;--okbg:#e8f6ee;--warnbg:#fff4e0;--badbg:#fdeceb;--chipbg:#e8eefc}
+*{box-sizing:border-box}body{margin:0;font:14px/1.45 system-ui,Segoe UI,sans-serif;color:var(--text);background:var(--bg)}
+header{display:flex;gap:12px;align-items:center;padding:8px 16px;background:#14233f;color:#fff;height:48px}
+header b{font-size:15px}header select{padding:3px 6px;border-radius:5px;border:0}#status{margin-left:auto;font-size:12px;opacity:.9}
+main{display:grid;grid-template-columns:minmax(300px,34%) 1fr;height:calc(100vh - 48px)}
+#left{overflow:auto;padding:12px 14px;border-right:1px solid var(--line);background:#fafbfc}#right{display:flex;flex-direction:column;min-width:0}
+h3{margin:.2em 0 .6em;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.seg{padding:5px 8px;border-radius:6px;margin:2px 0}.seg .t{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px;font-size:12px}
+.seg b{font-size:12px;margin-right:6px}.seg .agent{color:var(--accent)}.seg .customer{color:#7a3db8}
+.seg.lowc .x{text-decoration:underline dotted var(--warn);text-underline-offset:3px}.seg.flash{background:#fff1b8;transition:background 1.5s}
+nav{display:flex;gap:2px;padding:8px 14px 0;border-bottom:1px solid var(--line);background:var(--card)}
+nav button{border:0;background:none;padding:8px 14px;cursor:pointer;font-size:14px;color:var(--muted);border-bottom:2px solid transparent}
+nav button.on{color:var(--accent);border-color:var(--accent);font-weight:600}
+.tab{display:none;flex:1;overflow:auto;padding:14px 16px}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.head{font-size:15px;margin-bottom:6px}.blurb{margin:6px 0 4px;font-size:15px}
+h4{margin:14px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}h5{margin:0 0 4px;font-size:13px}
+ul,ol{margin:2px 0 2px 20px;padding:0}li{margin:3px 0}.cols{display:flex;gap:24px;flex-wrap:wrap}.col{flex:1;min-width:230px}
+.badge{display:inline-block;padding:0 7px;border-radius:9px;font-size:12px;background:#eef0f3;color:#3b4656;margin-left:4px;white-space:nowrap}
+.badge.warn{background:var(--warnbg);color:var(--warn)}.badge.due{background:var(--chipbg);color:var(--accent)}
+.chip{display:inline-block;padding:0 6px;border-radius:8px;font-size:11px;background:var(--chipbg);color:var(--accent);cursor:pointer;margin-left:3px;text-decoration:none;font-variant-numeric:tabular-nums}
+.chip:hover{background:#d3defa}.muted{color:var(--muted);font-size:12px}
+.callout{border-radius:8px;padding:8px 12px;margin:10px 0;border:1px solid}.callout.ok{background:var(--okbg);border-color:#b8e2c8;color:var(--ok)}
+.callout.soft,.callout.scope{background:var(--warnbg);border-color:#f3d9a6}.callout.bad{background:var(--badbg);border-color:#f2b8b5;color:var(--bad)}
+.callout ul{color:var(--text)}
+.rec{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;gap:12px}
+.rec.off{opacity:.5}.rank{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;text-align:center;line-height:26px;font-weight:600;font-size:13px}
+.rec .act{font-weight:600}.src{display:inline-block;margin:4px 6px 0 0;padding:1px 8px;border-radius:9px;font-size:12px;text-decoration:none;border:1px solid var(--line);color:var(--text);background:#fff}
+.src.public_doc{border-color:#b8e2c8;background:var(--okbg)}.src.jira,.src.confluence{border-color:#c9d6f7;background:var(--chipbg)}.src.internal_kb,.src.past_case{background:#f1f1f4}
+button.primary{background:var(--accent);color:#fff;border:0;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:14px}button.primary:disabled{opacity:.5;cursor:wait}
+button.ghost{background:#fff;border:1px solid var(--line);border-radius:7px;padding:6px 12px;cursor:pointer;font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}label.opt{font-size:13px;color:var(--muted)}
+input[type=text],textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;background:#fff}
+textarea{min-height:200px;resize:vertical;overflow:hidden;line-height:1.5;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+#chatlog{flex:1}.msg{margin:8px 0;padding:8px 12px;border-radius:10px;max-width:92%}.msg.me{background:var(--accent);color:#fff;margin-left:auto;width:fit-content}
+.msg.bot{background:var(--card);border:1px solid var(--line)}.msg p{margin:4px 0}.stream{white-space:pre-wrap}.tool{font-size:12px;color:var(--muted)}
+.emailbox{border:1px dashed #9aa6b8;border-radius:8px;padding:8px 10px;margin:8px 0;background:#fbfcfe;position:relative}
+.emailbox pre{margin:0 0 4px;white-space:pre-wrap;font:13px/1.5 ui-monospace,Consolas,monospace}.emailbox .lbl{font-size:11px;color:var(--muted);text-transform:uppercase}
+.qs{display:flex;gap:6px;flex-wrap:wrap;padding:8px 16px 0;background:var(--bg)}.qs button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:3px 10px;cursor:pointer;font-size:12px}
+.chatin{display:flex;gap:8px;padding:10px 16px;background:var(--bg)}code{background:#eef0f3;padding:0 4px;border-radius:4px}
+</style></head><body>
+<header><b>Call Copilot</b><select id="scn"></select><span id="meta"></span><span id="status"></span></header>
+<main>
+  <section id="left"><h3>Live transcript</h3><div id="transcript"></div></section>
+  <section id="right">
+    <nav id="tabs"><button data-tab="recs" class="on">Recommendations</button><button data-tab="summary">Summary</button><button data-tab="email">Email</button><button data-tab="chat">Chat</button></nav>
+    <div class="tab on" id="tab-recs"></div>
+    <div class="tab" id="tab-summary"><div class="row"><button class="primary" id="gen-summary">Generate summary</button><span class="muted">Organises the call first, then writes it up.</span></div><div id="summary-out"></div></div>
+    <div class="tab" id="tab-email">
+      <div class="row"><button class="primary" id="gen-email">Draft email</button><span class="muted">The AI chooses the format and length: informative, courteous, concise.</span></div>
+      <div id="email-out" style="display:none">
+        <div class="muted" style="margin-bottom:4px">Always a draft. Edit freely; the rules are re-checked as you type.</div>
+        <input type="text" id="subj"><div style="height:8px"></div><textarea id="body" spellcheck="true"></textarea>
+        <div class="row" style="margin-top:8px"><span class="muted" id="wc"></span><span style="flex:1"></span>
+          <button class="ghost" id="fix" style="display:none">Apply suggested fix</button><button class="ghost" id="copy-email">Copy email</button></div>
+        <div id="checks"></div><div id="verify"></div></div>
+    </div>
+    <div class="tab" id="tab-chat" style="display:none;flex-direction:column;padding:0"><div class="tab-inner" style="flex:1;overflow:auto;padding:14px 16px"><div id="chatlog"></div></div>
+      <div class="qs" id="qs"></div><div class="chatin"><input type="text" id="q" placeholder="Ask about this call..."><button class="primary" id="send">Send</button></div></div>
+  </section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const KEY=new URLSearchParams(location.search).get("key"); // open /?key=... when COPILOT_API_KEY is set
+const H=(h={})=>KEY?{...h,"X-API-Key":KEY}:h;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const jsonReq=(method,body)=>({method,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+async function api(path,opts={}){
+  const r=await fetch(path,{...opts,headers:H(opts.headers)});
+  if(!r.ok){let m=r.statusText;try{const j=await r.json();m=j.error||JSON.stringify(j.detail)||m}catch{}throw new Error(m)}
+  return r.json();
+}
+const mmss=ms=>{const s=Math.floor((ms||0)/1000);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+let ctx=null,mid="demo",segById={},summary=null,draft=null,suggested=null,timer=null;
+const REVIEW_BADGE={ok:["✓","Opened and read"],redirected:["↪","Opened (the link moved)"],not_found:["✗","Page not found"],blocked:["⚠","Could not be checked (blocked)"],
+  no_access:["🔒","No access to this source"],error:["⚠","Could not be checked"],skipped:["","Not reviewed"]};
+const reviewBadge=rv=>{if(!rv)return "";const [icon,label]=REVIEW_BADGE[rv.status]||["",""];return icon?`<span title="${esc(label+(rv.note?": "+rv.note:""))}">${icon}</span> `:""};
+const SOURCE_LABEL={public_doc:"Public doc",internal_kb:"Internal KB",confluence:"Confluence",jira:"Jira",past_case:"Past case"};
+
+const chip=id=>{const s=segById[id];return `<a class="chip" data-seg="${esc(id)}" title="${esc(id)}${s?" - "+esc(s.speaker):""}">${s?mmss(s.start_ms):esc(id)}</a>`};
+const chips=ids=>(ids||[]).map(chip).join("");
+document.addEventListener("click",e=>{
+  const c=e.target.closest("a.chip[data-seg]");
+  if(c){const el=$("seg-"+c.dataset.seg);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1600)}}
+  const cp=e.target.closest("[data-copy]");if(cp){navigator.clipboard.writeText(cp.dataset.copy);cp.textContent="Copied";setTimeout(()=>cp.textContent="Copy",1200)}
+});
+function setStatus(t){$("status").textContent=t||""}
+async function busy(btn,label,fn){btn.disabled=true;setStatus(label+"...");try{await fn();setStatus("")}catch(e){setStatus("Error: "+e.message)}finally{btn.disabled=false}}
+
+// ---- tabs
+function tab(name){
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===name));
+  document.querySelectorAll(".tab").forEach(t=>{const on=t.id==="tab-"+name;t.classList.toggle("on",on);t.style.display=on?(name==="chat"?"flex":"block"):"none"});
+}
+$("tabs").onclick=e=>{if(e.target.dataset.tab)tab(e.target.dataset.tab)};
+
+// ---- transcript and recommendations
+function renderTranscript(){
+  segById=Object.fromEntries(ctx.transcript.segments.map(s=>[s.id,s]));
+  $("transcript").innerHTML=ctx.transcript.segments.map(s=>{
+    const low=s.confidence!=null&&s.confidence<0.6,orig=s.text_translated&&s.text_translated!==s.text_original?` title="Original: ${esc(s.text_original)}"`:"";
+    return `<div class="seg${low?" lowc":""}" id="seg-${esc(s.id)}"><span class="t">${mmss(s.start_ms)}</span><b class="${s.speaker}">${s.speaker==="agent"?"Agent":"Customer"}</b><span class="x"${orig}>${esc(s.text_translated||s.text_original)}</span>${low?' <span class="badge warn" title="Low recognition/translation confidence">?</span>':""}</div>`;
+  }).join("");
+  const m=ctx.transcript.metadata;$("meta").textContent=`${m.case_id} · ${m.customer_name} · ${m.product||""}`;
+}
+function renderRecs(){
+  const notes=Object.fromEntries((summary?.recommendation_notes||[]).map(n=>[n.rec_id,n]));
+  const recs=[...ctx.recommendations.recommendations].sort((a,b)=>a.rank-b.rank);
+  const reviews=Object.fromEntries((summary?.source_reviews||[]).map(r=>[r.url,r]));
+  $("tab-recs").innerHTML=`<h3>Cheatsheet</h3>`+recs.map(r=>{
+    const n=notes[r.id],off=n&&!n.relevant;
+    return `<div class="rec${off?" off":""}"><div class="rank">${r.rank}</div><div><div class="act">${esc(r.action)}</div><div>${esc(r.rationale)}</div>`+
+      r.sources.map(s=>`<a class="src ${s.type}" href="${esc(s.url)}" target="_blank" rel="noopener">${reviewBadge(reviews[s.url])}${SOURCE_LABEL[s.type]||s.type}${s.jira_key?" "+esc(s.jira_key):""}: ${esc(s.label)}</a>`).join("")+
+      (n&&n.supported!=null?`<div class="muted" style="margin-top:4px">${n.supported?"✓ The opened source supports this.":"⚠ The opened source does <b>not</b> support this."} ${esc(n.gist||"")}</div>`:"")+
+      `<div class="muted" style="margin-top:4px">Triggered by ${chips(r.trigger_segment_ids)}${off?` · <b>Set aside:</b> ${esc(n.note||"not relevant")}`:""}</div></div></div>`;
+  }).join("");
+}
+
+// ---- summary
+function claimList(title,items){
+  if(!items||!items.length)return "";
+  return `<h4>${title}</h4><ul>`+items.map(c=>`<li>${esc(c.text)}${c.uncertain?' <span class="badge warn" title="The call was unclear or contradictory here">⚠ uncertain</span>':""} ${chips(c.segment_ids)}</li>`).join("")+`</ul>`;
+}
+function renderSummary(s){
+  const p=s.product||{};
+  const prod=p.name?`<span class="badge">${esc(p.name)}${p.version?" "+esc(p.version):""}${p.uncertain?" ⚠":""}</span>`:"";
+  let h=`<div class="card"><div class="head"><b>${esc(ctx.transcript.metadata.customer_name)}</b> · ${esc(s.case_id)} ${prod}</div><p class="blurb">${esc(s.plain_language)}</p>`;
+  h+=claimList("Issues",s.issues)+claimList("Before the call",s.before_call)+claimList("During the call",s.in_call)+claimList("Findings",s.findings);
+  const owners=[["agent","Support (you)"],["customer","Customer"],["opswat_other","Other OPSWAT teams"]];
+  const cols=owners.map(([k,t])=>{const a=(s.next_actions||[]).filter(x=>x.owner===k);
+    return a.length?`<div class="col"><h5>${t}</h5><ol>${a.map(x=>`<li>${esc(x.action)}${x.due?` <span class="badge due">${esc(x.due)}</span>`:""} ${chips(x.segment_ids)}</li>`).join("")}</ol></div>`:""}).join("");
+  if(cols)h+=`<h4>Next steps</h4><div class="cols">${cols}</div>`;
+  h+=claimList("Open questions",s.open_questions);
+  if((s.third_party_components||[]).length)h+=`<div class="callout scope"><b>Outside OPSWAT's scope</b> (third-party products; the customer's team or the vendor handles these)<ul>`+
+    s.third_party_components.map(c=>`<li><b>${esc(c.name)}</b>: ${esc(c.role)} ${chips(c.segment_ids)}</li>`).join("")+`</ul></div>`;
+  if((s.low_confidence_segment_ids||[]).length)h+=`<p class="muted">${s.low_confidence_segment_ids.length} transcript line(s) may contain recognition or translation errors: ${chips(s.low_confidence_segment_ids)}</p>`;
+  const off=(s.recommendation_notes||[]).filter(n=>!n.relevant);
+  const sr=s.source_reviews||[];
+  if(sr.length){const opened=sr.filter(r=>r.status==="ok"||r.status==="redirected").length;
+    h+=`<details class="muted" style="margin-top:8px"><summary>${opened} of ${sr.length} recommendation sources were opened and read before writing</summary><ul>`+
+      sr.map(r=>`<li>${reviewBadge(r)}${esc(SOURCE_LABEL[r.type]||r.type)}: ${esc(r.title||r.label||r.url)} <span class="muted">(${esc(r.status)}${r.note?": "+esc(r.note):""})</span></li>`).join("")+`</ul></details>`;}
+  if(off.length)h+=`<p class="muted">${off.length} recommendation(s) set aside (duplicate or unrelated); see the Recommendations tab.</p>`;
+  return h+`</div>`;
+}
+async function genSummary(){summary=await api(`/v1/meetings/${mid}/summary`,{method:"POST"});$("summary-out").innerHTML=renderSummary(summary);renderRecs()}
+$("gen-summary").onclick=e=>busy(e.target,"Organising and summarising",genSummary);
+
+// ---- email
+const autosize=()=>{const t=$("body");t.style.height="auto";t.style.height=(t.scrollHeight+6)+"px"};
+function wordCount(){const sig=(ctx.style_profile?.signature||"").trim(),b=$("body").value.trim();
+  const body=sig&&b.endsWith(sig)?b.slice(0,-sig.length):b;const n=body.split(/\s+/).filter(Boolean).length;
+  $("wc").textContent=`${n} words (signature not counted; most emails fit in 150, never more than 220)`}
+async function checkDraft(){
+  wordCount();autosize();
+  const r=await api(`/v1/meetings/${mid}/email/check`,jsonReq("POST",{subject:$("subj").value,body:$("body").value}));
+  const hard=r.checks.filter(c=>!c.passed&&!c.soft),soft=r.checks.filter(c=>!c.passed&&c.soft);
+  const li=cs=>`<ul>${cs.map(c=>`<li><code>${esc(c.name)}</code> ${esc(c.details.join("; "))}</li>`).join("")}</ul>`;
+  $("checks").innerHTML=(hard.length?`<div class="callout bad"><b>Fix before sending</b>${li(hard)}</div>`:`<div class="callout ok">✓ All sending rules pass (plain text, no ticket ids or internal links, public links only).</div>`)+
+    (soft.length?`<div class="callout soft"><b>Style suggestions</b>${li(soft)}</div>`:"");
+  suggested=r.suggested_body;$("fix").style.display=suggested?"":"none";
+}
+function showDraft(d){
+  draft=d;$("email-out").style.display="block";$("subj").value=d.subject;$("body").value=d.body;
+  const v=[...(d.claims_needing_verification||[])].map(c=>`<li>${esc(c.claim)}${c.reason?` <span class="muted">(${esc(c.reason)})</span>`:""} ${chips(c.segment_ids)}</li>`).join("");
+  const w=(d.warnings||[]).map(x=>`<li>${esc(x)}</li>`).join("");
+  $("verify").innerHTML=(v?`<div class="callout soft"><b>Please verify before sending</b><ul>${v}</ul></div>`:"")+(w?`<div class="callout soft"><b>We adjusted the draft</b><ul>${w}</ul></div>`:"")+
+    (d.links_used?.length?`<p class="muted">Links used: ${d.links_used.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>`).join(", ")}</p>`:"");
+  return checkDraft();
+}
+async function genEmail(){
+  if(!summary)await genSummary();
+  await showDraft(await api(`/v1/meetings/${mid}/email`,{method:"POST"}));
+}
+$("gen-email").onclick=e=>busy(e.target,"Drafting email",genEmail);
+for(const id of ["subj","body"])$(id).oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>checkDraft().catch(()=>{}),500)};
+$("fix").onclick=()=>{if(suggested){$("body").value=suggested;checkDraft()}};
+$("copy-email").onclick=e=>{navigator.clipboard.writeText($("subj").value+"\n\n"+$("body").value);e.target.textContent="Copied";setTimeout(()=>e.target.textContent="Copy email",1200)};
+
+// ---- chat
+const inline=s=>s.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\bseg_\d+\b/g,m=>chip(m));
+function md(t){
+  let h="",mode=null;const close=()=>{if(mode){h+=`</${mode}>`;mode=null}};
+  for(const l of esc(t).split("\n")){let m;
+    if(m=l.match(/^\s*[-*]\s+(.*)/)){if(mode!=="ul"){close();h+="<ul>";mode="ul"}h+=`<li>${inline(m[1])}</li>`}
+    else if(m=l.match(/^\s*\d+[.)]\s+(.*)/)){if(mode!=="ol"){close();h+="<ol>";mode="ol"}h+=`<li>${inline(m[1])}</li>`}
+    else if(!l.trim())close();else{close();h+=`<p>${inline(l)}</p>`}}
+  close();return h;
+}
+const emailBox=t=>`<div class="emailbox"><div class="lbl">Customer-ready plain text</div><pre>${esc(t)}</pre><button class="ghost" data-copy="${esc(t)}">Copy</button></div>`;
+function renderChat(r){
+  let h=r.text.split(/<email>\s*([\s\S]*?)\s*<\/email>/i).map((p,i)=>i%2?emailBox(p):md(p)).join("");
+  if(r.citations?.length)h+=`<div>`+r.citations.map(c=>`<a class="src ${c.type||""}" href="${esc(c.url||"#")}" target="_blank" rel="noopener">${c.jira_key?esc(c.jira_key)+": ":""}${esc(c.label)}</a>`).join("")+`</div>`;
+  const used=(r.tools_used||[]).filter(t=>t.tool!=="__invalid__");
+  if(used.length)h+=`<div class="muted" style="margin-top:4px">Searched: ${used.map(t=>`${esc(t.tool)}${t.forced?" (guard)":""} → ${t.error?"error":t.result_count}`).join(", ")}</div>`;
+  if(r.warnings?.length)h+=`<div class="callout soft"><ul>${r.warnings.map(w=>`<li>${esc(w)}</li>`).join("")}</ul></div>`;
+  return h;
+}
+async function ask(q){
+  q=q.trim();if(!q)return;$("q").value="";tab("chat");
+  const log=$("chatlog"),sc=log.parentElement;
+  log.insertAdjacentHTML("beforeend",`<div class="msg me">${esc(q)}</div>`);
+  const box=document.createElement("div");box.className="msg bot";const tools=document.createElement("div"),txt=document.createElement("div");
+  txt.className="stream";box.append(tools,txt);log.appendChild(box);let raw="";
+  const res=await fetch(`/v1/meetings/${mid}/chat`,{...jsonReq("POST",{message:q}),headers:H({"Content-Type":"application/json"})});
+  if(!res.ok){txt.textContent=(await res.json().catch(()=>({}))).error||res.statusText;return}
+  const reader=res.body.getReader(),dec=new TextDecoder();let buf="";
+  const handle=block=>{
+    const type=(block.match(/^event: (.*)$/m)||[])[1],data=JSON.parse((block.match(/^data: (.*)$/m)||[,"{}"])[1]);
+    if(type==="token"){raw+=data.text;txt.textContent=raw}
+    else if(type==="tool_call")tools.insertAdjacentHTML("beforeend",`<div class="tool">🔎 searching ${esc(data.tool.tool)}${data.tool.forced?" (guard: checking before saying I don't know)":""}...</div>`);
+    else if(type==="done"){box.innerHTML=renderChat(data.result)}
+    else if(type==="error")txt.textContent=raw+" [error: "+data.error+"]";
+    sc.scrollTop=sc.scrollHeight;
+  };
+  for(;;){const {done,value}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});
+    let i;while((i=buf.indexOf("\n\n"))>=0){const b=buf.slice(0,i);buf=buf.slice(i+2);handle(b)}}
+}
+$("send").onclick=()=>ask($("q").value);$("q").onkeydown=e=>{if(e.key==="Enter")ask($("q").value)};
+$("qs").innerHTML=["What did the customer say about the version?","What should I try next?","Rewrite the next steps more formally for the email."].map(q=>`<button>${esc(q)}</button>`).join("");
+$("qs").onclick=e=>{if(e.target.tagName==="BUTTON")ask(e.target.textContent)};
+
+// ---- load
+async function load(id){
+  ctx=await api(`/v1/scenarios/${id}`);
+  await api(`/v1/meetings/${mid}`,jsonReq("PUT",ctx));
+  summary=draft=suggested=null;
+  renderTranscript();renderRecs();
+  $("summary-out").innerHTML="";$("email-out").style.display="none";$("chatlog").innerHTML="";
+}
+$("scn").onchange=e=>load(e.target.value).catch(err=>setStatus("Error: "+err.message));
+// Demo shortcuts: /?scenario=<id>&tab=summary|email|chat&gen=summary|email|chat&q=<question> (add &key=... if an API key is set)
+const Q=new URLSearchParams(location.search);
+api("/v1/scenarios").then(l=>{
+  $("scn").innerHTML=l.map(s=>`<option value="${s.id}">${esc(s.customer)} - ${s.id}</option>`).join("");
+  const id=l.some(s=>s.id===Q.get("scenario"))?Q.get("scenario"):l[0].id;$("scn").value=id;return load(id);
+}).then(async()=>{
+  if(Q.get("tab"))tab(Q.get("tab"));
+  const g=Q.get("gen");
+  if(g==="summary")await genSummary();
+  else if(g==="email")await genEmail();
+  else if(g==="chat")await ask(Q.get("q")||"What should I try next?");
+}).catch(e=>setStatus("Error: "+e.message));
+</script></body></html>

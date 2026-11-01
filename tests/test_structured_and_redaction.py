@@ -2,11 +2,11 @@ import re
 
 import pytest
 
-from callcopilot.contracts import EmailCore
-from callcopilot.llm import LLMError, Message, Tag, generate_structured
-from callcopilot.llm.structured import StructuredOutputError, extract_json
-from callcopilot.pipeline import known_names
-from callcopilot.safety import RedactingClient, Redactor, wrap_untrusted
+from callcopilot.shared.contracts import EmailCore
+from callcopilot.shared.llm import LLMError, Message, Tag, generate_structured
+from callcopilot.shared.llm.structured import StructuredOutputError, extract_json
+from callcopilot.app.pipeline import known_names
+from callcopilot.shared.safety import RedactingClient, Redactor, wrap_untrusted
 from conftest import ScriptedLLM
 
 GOOD = '{"subject": "s", "body": "b"}'

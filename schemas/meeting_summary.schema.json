@@ -1,0 +1,403 @@
+{
+  "$defs": {
+    "Claim": {
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "segment_ids": {
+          "description": "Transcript segments that support this claim.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Segment Ids",
+          "type": "array"
+        },
+        "uncertain": {
+          "default": false,
+          "description": "True if the transcript is ambiguous, noisy or contradictory here.",
+          "title": "Uncertain",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "Claim",
+      "type": "object"
+    },
+    "NextAction": {
+      "properties": {
+        "owner": {
+          "enum": [
+            "agent",
+            "customer",
+            "opswat_other"
+          ],
+          "title": "Owner",
+          "type": "string"
+        },
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "due": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Due"
+        },
+        "segment_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Segment Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "owner",
+        "action"
+      ],
+      "title": "NextAction",
+      "type": "object"
+    },
+    "ProductInfo": {
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Only a version actually stated in the transcript; never inferred.",
+          "title": "Version"
+        },
+        "segment_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Segment Ids",
+          "type": "array"
+        },
+        "uncertain": {
+          "default": false,
+          "title": "Uncertain",
+          "type": "boolean"
+        }
+      },
+      "title": "ProductInfo",
+      "type": "object"
+    },
+    "RecNote": {
+      "description": "Triage of one provided recommendation, made while organising the call.",
+      "properties": {
+        "rec_id": {
+          "title": "Rec Id",
+          "type": "string"
+        },
+        "relevant": {
+          "default": true,
+          "description": "False for duplicates or items unrelated to this call.",
+          "title": "Relevant",
+          "type": "boolean"
+        },
+        "issue": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Index into `issues` this recommendation addresses, if any.",
+          "title": "Issue"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        },
+        "supported": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether the reviewed source content supports the recommended action. None = not reviewed.",
+          "title": "Supported"
+        },
+        "gist": {
+          "default": "",
+          "description": "One plain sentence on what the reviewed sources say that matters here. No names, ids or links.",
+          "title": "Gist",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rec_id"
+      ],
+      "title": "RecNote",
+      "type": "object"
+    },
+    "SourceReview": {
+      "description": "What happened when we opened a recommendation's source (public doc, Jira ticket, Confluence page) before writing.",
+      "properties": {
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/SourceType"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "jira_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Jira Key"
+        },
+        "status": {
+          "default": "skipped",
+          "enum": [
+            "ok",
+            "redirected",
+            "not_found",
+            "blocked",
+            "no_access",
+            "skipped",
+            "error"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "final_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the link really ends up (after redirects).",
+          "title": "Final Url"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "excerpt": {
+          "default": "",
+          "description": "The passage(s) of the source most relevant to the recommendation, trimmed.",
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "note": {
+          "default": "",
+          "description": "Why it was skipped, blocked or failed. Safe to show the agent.",
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "type"
+      ],
+      "title": "SourceReview",
+      "type": "object"
+    },
+    "SourceType": {
+      "enum": [
+        "public_doc",
+        "internal_kb",
+        "confluence",
+        "jira",
+        "past_case"
+      ],
+      "title": "SourceType",
+      "type": "string"
+    },
+    "ThirdPartyComponent": {
+      "properties": {
+        "name": {
+          "description": "Non-OPSWAT product involved in the issue (VDI, proxy, firewall, SSL inspection, other vendor).",
+          "title": "Name",
+          "type": "string"
+        },
+        "role": {
+          "description": "What it does in the customer's setup / why it matters to the issue.",
+          "title": "Role",
+          "type": "string"
+        },
+        "segment_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Segment Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "role"
+      ],
+      "title": "ThirdPartyComponent",
+      "type": "object"
+    }
+  },
+  "description": "SummaryCore plus fields we fill in deterministically in code.",
+  "properties": {
+    "issues": {
+      "description": "Problems the customer reported, most important first. One short line each.",
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "product": {
+      "$ref": "#/$defs/ProductInfo"
+    },
+    "before_call": {
+      "description": "What was tried or done BEFORE the call.",
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "Before Call",
+      "type": "array"
+    },
+    "in_call": {
+      "description": "What was checked or done DURING the call.",
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "In Call",
+      "type": "array"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "next_actions": {
+      "description": "After the call; owner = agent (support), customer or opswat_other.",
+      "items": {
+        "$ref": "#/$defs/NextAction"
+      },
+      "title": "Next Actions",
+      "type": "array"
+    },
+    "open_questions": {
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "Open Questions",
+      "type": "array"
+    },
+    "third_party_components": {
+      "items": {
+        "$ref": "#/$defs/ThirdPartyComponent"
+      },
+      "title": "Third Party Components",
+      "type": "array"
+    },
+    "plain_language": {
+      "description": "2-3 plain sentences (<=60 words): what happened and what comes next.",
+      "title": "Plain Language",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "case_id": {
+      "default": "",
+      "title": "Case Id",
+      "type": "string"
+    },
+    "recommendation_notes": {
+      "items": {
+        "$ref": "#/$defs/RecNote"
+      },
+      "title": "Recommendation Notes",
+      "type": "array"
+    },
+    "source_reviews": {
+      "description": "What opening each recommendation source showed.",
+      "items": {
+        "$ref": "#/$defs/SourceReview"
+      },
+      "title": "Source Reviews",
+      "type": "array"
+    },
+    "low_confidence_segment_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Low Confidence Segment Ids",
+      "type": "array"
+    },
+    "meta": {
+      "additionalProperties": true,
+      "title": "Meta",
+      "type": "object"
+    }
+  },
+  "required": [
+    "plain_language"
+  ],
+  "title": "MeetingSummary",
+  "type": "object"
+}

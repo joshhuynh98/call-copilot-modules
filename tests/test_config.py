@@ -1,7 +1,7 @@
 import pytest
 
-from callcopilot.llm import ConfigError, create_client, load_config, load_judge_config
-from callcopilot.llm.fake import FakeLLM
+from callcopilot.shared.llm import ConfigError, create_client, load_config, load_judge_config
+from callcopilot.shared.llm.fake import FakeLLM
 
 
 def test_missing_variables_named_in_error():

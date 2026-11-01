@@ -9,15 +9,16 @@ from __future__ import annotations
 
 import json
 
-from callcopilot import policy
-from callcopilot.checks import EmailPolicy, check_email, enforce_email_text, failed
-from callcopilot.contracts import (
-    ClaimToVerify, EmailCore, EmailDraft, MeetingSummary, RecommendationSet, StyleProfile, Transcript,
+from callcopilot.shared import policy
+from callcopilot.modules.email.checks import EmailPolicy, check_email, enforce_email_text
+from callcopilot.shared.checks import failed
+from callcopilot.shared.contracts import (
+    ClaimToVerify, EmailCore, EmailDraft, MeetingSummary, RecNote, RecommendationSet, StyleProfile, Transcript,
 )
-from callcopilot.llm import LLMClient, Message, Tag, generate_structured
-from callcopilot.modules.recommendations import triage_recommendations
-from callcopilot.prompt_loader import load_prompt
-from callcopilot.safety import UNTRUSTED_NOTICE
+from callcopilot.shared.llm import LLMClient, Message, Tag, generate_structured
+from callcopilot.modules.recommendations import email_link_recs
+from callcopilot.shared.prompt_loader import load_prompt
+from callcopilot.shared.safety import UNTRUSTED_NOTICE
 
 MAX_REPAIRS = 2
 SCOPE_SENTENCE = ("Please note that {names} is a third-party product and outside OPSWAT's scope, "
@@ -43,11 +44,13 @@ def build_links(recs: RecommendationSet | None) -> list[dict]:
     return out
 
 
-def internal_notes(recs: RecommendationSet | None) -> str:
-    """Titles of recommendations with ids/links stripped: context for the model, nothing quotable."""
+def internal_notes(recs: RecommendationSet | None, notes: list[RecNote] | None = None) -> str:
+    """Each kept recommendation's action, plus the one-sentence gist of what its opened sources say.
+    Ids and links are stripped: context for the model, nothing quotable. Raw source text never reaches the email prompt."""
     if not recs:
         return "(none)"
-    return "\n".join(f"- {r.action}" for r in recs.recommendations) or "(none)"
+    gist = {n.rec_id: n.gist for n in notes or [] if n.gist}
+    return "\n".join(f"- {r.action}" + (f" (what the checked sources say: {gist[r.id]})" if r.id in gist else "") for r in recs.recommendations) or "(none)"
 
 
 def _first_name(contact: str | None) -> str:
@@ -62,7 +65,8 @@ def draft_email(
     llm: LLMClient,
 ) -> EmailDraft:
     meta = transcript.metadata
-    link_recs = triage_recommendations(recs, summary.recommendation_notes)  # drop duplicates / unrelated items
+    # Triage: drop duplicates and unrelated items; keep only links whose pages exist and support the recommendation.
+    link_recs = email_link_recs(recs, summary.recommendation_notes, summary.source_reviews)
     pol = EmailPolicy.build(recs, summary, link_recs)
     links = build_links(link_recs)
     components = [_clean_name(c.name) for c in summary.third_party_components]
@@ -76,9 +80,9 @@ def draft_email(
         tone=style.tone,
         glossary="; ".join(f"{g.term} -> {g.preferred}" + (f" (avoid '{g.avoid}')" if g.avoid else "") for g in style.glossary) or "(none)",
         samples="\n---\n".join(style.sample_emails) or "(none)",
-        summary=json.dumps(summary.model_dump(exclude={"meta", "recommendation_notes"}), indent=1),
+        summary=json.dumps(summary.model_dump(exclude={"meta", "recommendation_notes", "source_reviews"}), indent=1),
         links="\n".join(f"- {l['title']}: {l['url']}" for l in links) or "(none: include no link)",
-        internal_notes=internal_notes(link_recs),
+        internal_notes=internal_notes(link_recs, summary.recommendation_notes),
     )
 
     core, repairs = generate_structured(llm, msgs, EmailCore, tag=Tag("email", meta.case_id))
@@ -127,6 +131,12 @@ def draft_email(
                                     reason="product or version was unclear on the call", segment_ids=summary.product.segment_ids))
 
     used = [u for u in policy.extract_urls(draft.body) if u in pol.allowed_urls]
+    unverified = {}
+    for rv in summary.source_reviews:
+        if rv.status in ("blocked", "error"):
+            unverified[rv.url] = rv
+    warnings += [f"link not verified (could not open it: {unverified[u].note or unverified[u].status}): {u}"
+                 for u in dict.fromkeys(used) if u in unverified]
     draft.case_id = meta.case_id
     draft.claims_needing_verification = claims
     draft.links_used = list(dict.fromkeys(used))

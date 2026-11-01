@@ -12,4 +12,4 @@
 - Streaming is normalised to `StreamEvent(text | tool_call)`; the chat API re-emits it as SSE.
 - We do not depend on provider-specific features (JSON modes, native tool calling, huge contexts).
 
-**Consequences:** A new provider = one adapter + one line in `llm/factory.py`. The adapters are covered by unit tests using `httpx.MockTransport` (no server needed). `AI_JUDGE_*` allows a different server for the eval judge.
+**Consequences:** A new provider = one adapter + one line in `shared/llm/factory.py`. The adapters are covered by unit tests using `httpx.MockTransport` (no server needed). `AI_JUDGE_*` allows a different server for the eval judge.

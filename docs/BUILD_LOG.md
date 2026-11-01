@@ -18,12 +18,14 @@ Status as of 2026-10-31 (week 1 of 2), after the summary rework, the warmer-emai
 | Evals | runner over all scenarios, judge (4 versioned rubrics), Markdown + JSON report | `callcopilot eval --fake`, [baseline-report.md](baseline-report.md) |
 | API + demo | FastAPI endpoints, SSE chat, static demo page | `tests/test_api_and_evals.py`, manual `callcopilot serve --fake` |
 | Docs | plan, architecture, 6 ADRs, integration guide, email rules, chatbot, recommendations spec, evals | `docs/` |
-| Front-end support | CORS via `COPILOT_CORS_ORIGINS`; optional `COPILOT_API_KEY` (`X-API-Key`, constant-time compare) on all `/v1` routes; uniform `{"error"}` responses; `POST /v1/email/check` and `/v1/meetings/{id}/email/check` (`review_email`: checks, fixes, `suggested_body`) for edited drafts; OpenAPI spec exported to `contracts/openapi.json`; demo page sends the key; [frontend.md](frontend.md) | `tests/test_frontend_support.py` |
+| Front-end support | CORS via `COPILOT_CORS_ORIGINS`; optional `COPILOT_API_KEY` (`X-API-Key`, constant-time compare) on all `/v1` routes; uniform `{"error"}` responses; `POST /v1/email/check` and `/v1/meetings/{id}/email/check` (`review_email`: checks, fixes, `suggested_body`) for edited drafts; OpenAPI spec exported to `schemas/openapi.json`; demo page sends the key; [frontend.md](frontend.md) | `tests/test_frontend_support.py` |
 | Summary rework (ADR 0007) | Two-stage summary: organise (group, dedupe, order, resolve corrections, triage recommendations) then write; new grouped shape (`issues`, `before_call`, `in_call`, next steps by owner; `schema_version` 2.0); shared `style_rules` prompt in summary, email and chat; soft style checks and a `clarity_conciseness` judge rubric; email layout with labelled sections and plain-text dash/numbered lists; goldens rewritten without filler | `tests/test_organise_and_style.py` |
 | Warmer emails, no settings | One brief thank-you is expected in every customer email (soft `courtesy_line` check instead of a filler ban). The AI decides the format and length (`email@v4`, `style_rules@v3`); the thank-you, length and meeting-offer options were removed from the contracts, API, CLI and demo page, leaving fixed guardrails (220-word ceiling, never a meeting offer) | `tests/test_organise_and_style.py` |
 | Demo page | `demo.html` now renders the JSON: grouped summary with owner columns, uncertainty badges, clickable timestamp chips that highlight the transcript line, recommendations cheatsheet (set-aside items greyed), editable email with live checks and one-click fix, streaming chat with copy-ready email boxes; URL shortcuts for demos; checked with headless-browser screenshots | `tests/test_frontend_support.py` (page only calls endpoints that exist) |
+| Restructure for hand-off | All functional code is now in three folders under `src/callcopilot/`: `modules/` (summary, email, chatbot, recommendations, each with its own code, checks and prompts), `shared/` (contracts, LLM client, safety, policy, sources) and `app/` (API, CLI, evals, demo page). The exported JSON Schema folder is now `schemas/` (was `contracts/`, which clashed with the Python package of the same name). Package map in `src/callcopilot/README.md`; a test enforces the one-way dependency rules | `tests/test_layout.py` |
+| Source review (ADR 0008) | Opens every source the recommendations cite before writing: public docs (plain HTTP, real-browser fallback via Playwright, allowlist + SSRF guard), Jira and Confluence (own MCP client calling `getJiraIssue` / `getConfluencePage`), offline fixture mode for demos. Organise stage judges recommendations with the opened content (`supported`, `gist`); email links only to existing, supporting pages and sees gists only; chat shows opened excerpts; `callcopilot review` and `POST /v1/recommendations/review`; demo page badges | `tests/test_references.py` (35 tests, incl. a real browser and the official MCP SDK server) |
 
-165 tests pass offline.
+206 tests pass offline.
 
 ## Fixes found while building (kept for context)
 
@@ -35,9 +37,10 @@ Status as of 2026-10-31 (week 1 of 2), after the summary rework, the warmer-emai
 
 ## Not done / next
 
+0. **Build a DeveloperHub reader for the public docs** ([reference-review.md](reference-review.md): the public JSON API serves the docs; reading `/docs/mdcore` worked). Then **source review needs two accesses before it is fully real** (see [reference-review.md](reference-review.md)): a sanctioned route to the docs site (it currently gives plain HTTP an empty JavaScript shell and a headless browser an HTTP 403), and an Atlassian MCP endpoint plus non-interactive credential. Until then those sources are reported as `blocked` / `no_access` and the pipeline carries on. The Atlassian tool calls are untested against the live server.
 1. **Run against a real AI server** (Claude or local) and read the judge scores. Expect prompt tuning for weaker models; check `email_first_pass_clean` and `repairs` in `meta`.
 2. Agree the third-party term list and the open questions in [PLAN.md](PLAN.md) with the other module owners.
-3. Replace `FixtureToolBackend` with real docs/Jira/Confluence integrations (the Protocol is in `contracts/tools.py`).
+3. Replace `FixtureToolBackend` with real docs/Jira/Confluence integrations (the Protocol is in `src/callcopilot/shared/contracts/tools.py`).
 4. Real-format adapters for the transcript and recommendation modules once their output is known.
 5. Judge calibration: compare judge scores with a human read of 5–10 real outputs before trusting thresholds.
 6. Optional: conversation persistence beyond in-memory, real user authentication (the API key is a shared secret), live/incremental transcript endpoint, async jobs with progress for summary/email.
@@ -45,6 +48,7 @@ Status as of 2026-10-31 (week 1 of 2), after the summary rework, the warmer-emai
 ## Known limits
 
 - Fake provider proves plumbing and checks, not model quality.
+- Source review: excerpts are chosen by keyword overlap, only the first 12 distinct sources are opened, `internal_kb` and `past_case` sources have no reader, and the docs site and live Atlassian server could not be exercised from this repository.
 - Redaction is regex-based; free-text names not in the call metadata are not caught. Four-part dotted numbers look like IPs.
 - Third-party troubleshooting detection is a heuristic (term list + verbs + scope phrases).
 - Style (concise, plain English, no filler) is only approximated by soft checks (filler phrases, line and sentence length); the judge rubric and a human read are the real test. The summary now costs two model calls.

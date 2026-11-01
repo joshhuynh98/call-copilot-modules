@@ -16,13 +16,14 @@ Per scenario, against the generated (or fake) outputs and the golden expectation
 - **Summary:** evidence ids exist; claims grounded or marked uncertain; required sections (issues, next actions); plain-language blurb ≤ 80 words (target 60); version not invented (must appear in the transcript or be marked uncertain); low-confidence segments listed; golden must-mention, expected version, action owners, third-party detection, uncertainty on noisy calls.
 - **Email:** all hard rules in [email-rules.md](email-rules.md), plus golden must-mention / must-not-mention / required public links. `email_first_pass_clean` (soft/WARN) shows when the model needed repairs or auto-fixes.
 - **Style (soft, WARN only):** `no_filler`, `courtesy_line` (exactly one brief thank-you in the email, anywhere; none in summaries), `target_length` (email over 150 words), `concise_bullets` (≤ 30 words per list line), `plain_sentences` (average ≤ 22 words) on the summary text and the email. The goldens are kept clean of all three.
+- **Source review:** every scenario runs the review step (offline fixture copies with the fake provider); `no_link_to_a_dead_page` fails if an email links to a page whose review says `not_found`.
 - **Chat probes** (`golden/chat.json`): answers contain expected facts; "I don't know" answers were preceded by a search and say what was checked; URLs come from known sources; `<email>` blocks follow the email rules.
 
 **What the fake provider proves:** it serves the golden outputs, so passing proves the pipeline, the checks and the report work, not model quality. The negative tests (`tests/test_checks.py`, `tests/test_chat.py`) prove the checks catch violations.
 
 ## LLM-as-judge (needs a real server)
 
-Versioned rubrics in `src/callcopilot/prompts/judge_*/vN.md`, each scoring 1–5 with reasons: `summary_faithfulness`, `next_actions` (completeness against the golden), `email_tone` (style match), `clarity_conciseness` (brief, no filler, plain English, grouped, easy to scan), `recommendation_relevance`. The judge uses `AI_JUDGE_*`, falling back to `AI_*`. With only the fake provider, judge checks are skipped and the report says so.
+Versioned rubrics in `prompts/judge_*/vN.md` folders (next to the module they judge; the shared clarity rubric is in `shared/prompts/`), each scoring 1–5 with reasons: `summary_faithfulness`, `next_actions` (completeness against the golden), `email_tone` (style match), `clarity_conciseness` (brief, no filler, plain English, grouped, easy to scan), `recommendation_relevance`. The judge uses `AI_JUDGE_*`, falling back to `AI_*`. With only the fake provider, judge checks are skipped and the report says so.
 
 ## Adding a scenario
 

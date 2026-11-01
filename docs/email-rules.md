@@ -32,7 +32,7 @@ and a call with several findings and an unclear version can use labelled section
 | Plain text only | `no_markdown` | No `**`, `__`, backticks, `#` headings, `*`/`+`/`•` bullets, markdown links, tables, HTML. Numbered lines (`1. ...`) and dash lines (`- ...`) are plain text and allowed. |
 | No meetings or calls | `no_meeting_offer` | The email never offers or requests a call, meeting or demo. Plain references like "during our call" are allowed. |
 | Length ceiling | `length_limit` (hard), `target_length` (soft) | Hard: more than 220 words (signature not counted). Soft warning above 150. Paragraphs over 60 words and subjects over 100 characters also fail. |
-| Public links only, from the provided sources | `urls_public_and_provided`, `no_internal_links` | Only `public_doc` sources of the *triaged* recommendations. Never invented URLs. |
+| Public links only, from the provided sources | `urls_public_and_provided`, `no_internal_links` | Only `public_doc` sources of the *triaged* recommendations, and only pages that were opened and exist: dead links and links whose recommendation the opened content does not support are dropped, moved links are replaced by their final URL, links that could not be checked stay with a "link not verified" warning. Never invented URLs. See [reference-review.md](reference-review.md). |
 | No ticket ids | `no_jira_keys` | Every key in the provided sources (even from set-aside recommendations) plus anything key-shaped (`ABC-123`; common non-Jira tokens like `SHA-256` are ignored). |
 | Third-party scope | `third_party_scope_statement`, `no_third_party_troubleshooting` | If the summary lists third-party components, the email states they are outside OPSWAT's scope and gives no fixes for them. If the model forgets, a standard sentence is appended and flagged. |
 
@@ -47,7 +47,7 @@ Warnings, not failures. They trigger a repair round and show as WARN in the eval
 
 ## Pipeline
 
-1. Prompt `email@v4` gets: the grouped summary (JSON), the agent's style profile, the public links of the **triaged** recommendations, and internal notes **without** ids/links.
+1. Prompt `email@v5` gets: the grouped summary (JSON), the agent's style profile, the public links of the **triaged and verified** recommendations, and reference notes: each kept recommendation's action plus a one-sentence gist of what its opened sources say, **without** ids or links. Raw page or ticket text never goes into this prompt.
 2. Structured output (`subject`, `body`, `claims_needing_verification`), validated with repair.
 3. Checks, hard and soft style, then up to 2 repair rounds quoting the problems.
 4. Last resort: `enforce_email_text` removes markdown, disallowed links, ticket ids and meeting-offer sentences (and turns `*`/`+`/`•` bullets into dash lines). Each fix is added to `warnings`.

@@ -21,6 +21,7 @@ Approved plan for the modules I own. Timeline: 2 weeks; build fast, leave time t
 | Messy input | The AI reviews it first and groups it logically (issues, what happened before and during the call, findings, next steps by owner, open questions) before anything is written. Duplicate or unrelated recommendations are set aside. |
 | Email format | **The AI decides** the format and length of each email, guided by principles: informative, courteous (one brief thank-you for the customer's time), concise, easy to scan. No user-facing email settings (no thank-you toggle, length or meeting-offer settings). |
 | Email lists | Plain-text numbered and dash lines are allowed; other markdown is still not. |
+| Reviewing sources | Before writing, the tool opens and reads every source the recommendations cite: docs pages (a real browser when the page needs JavaScript) and Jira/Confluence through Atlassian MCP when it has access. Dead or unsupported links never reach the customer; the email sees one-line gists, never raw page or ticket text. See [reference-review.md](reference-review.md) and [ADR 0008](decisions/0008-open-sources-before-writing.md). |
 | Third-party products | OPSWAT is not responsible. Email/chat state it is out of scope and give no troubleshooting for it. |
 | AI server | Undecided (Claude API or local OpenAI-compatible server). Design works for either via env vars only. |
 
@@ -29,7 +30,7 @@ Approved plan for the modules I own. Timeline: 2 weeks; build fast, leave time t
 - Python 3.11 + FastAPI + Pydantic v2; teammates can import the library or call HTTP.
 - Recommendations reach the chatbot as a snapshot per request, not a live stream.
 - `case_id` identifies a call; segment ids are stable within a call.
-- The third-party term list in `src/callcopilot/data/third_party_terms.txt` is a draft to be agreed with the team.
+- The third-party term list in `src/callcopilot/shared/data/third_party_terms.txt` is a draft to be agreed with the team.
 
 ## Open questions for the other module owners
 
@@ -40,6 +41,8 @@ Approved plan for the modules I own. Timeline: 2 weeks; build fast, leave time t
 5. Who owns the third-party scope list (VDI, proxies, firewalls, SSL inspection, other vendors)?
 6. Recommendations: `rank`, `trigger_segment_ids` and `sources[].type` are required by our quality bar. Can the recommendation module produce them?
 7. How are internal vs public docs distinguished at source? We rely on `sources[].type == public_doc` for customer-visible links.
+8. **Docs site access:** www.opswat.com/docs answers plain HTTP with an empty JavaScript shell and a headless browser with HTTP 403. A public DeveloperHub JSON API (`api.developerhub.io/api/public`) does serve the pages; can the docs owners confirm it as the supported route for this service (or offer an allowlist, token or mirror)? We do not bypass the protection.
+9. **Atlassian MCP access:** which MCP endpoint and `Authorization` header can a server use non-interactively (service account, API token, or OAuth)? Which Jira projects and Confluence spaces should it be allowed to read?
 
 ## Build order
 

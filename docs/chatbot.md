@@ -6,6 +6,10 @@
 
 The system prompt contains the case line, the summary (JSON), the recommendations (rank, action, why, sources with links and Jira keys), the current email draft if any, and the transcript. All of these are wrapped as untrusted data. If the transcript exceeds the token budget, the first 5 segments plus the most recent ones that fit are included and a `search_transcript` tool is added for the rest.
 
+## Source review in the context
+
+The recommendations in the system prompt include what happened when their sources were opened before the chat (`Opened <label>: <excerpt>`, `Checked against the opened sources: supported / NOT supported`, or `NOT_FOUND`, `BLOCKED`, `NO_ACCESS`). The prompt tells the model to say so when it relies on an unverified source and never to describe a source that was not opened. Details: [reference-review.md](reference-review.md).
+
 ## Behaviour rules
 
 - Cites sources (segment ids, links, Jira keys). Links not present in the context or in tool results are removed from the answer and listed in `warnings`.
@@ -26,4 +30,4 @@ SSE events are `event: token|tool_call|tool_result|done|error` with a JSON `Chat
 
 ## Tools
 
-`search_docs`, `search_jira`, `search_confluence`, `similar_cases`, `customer_history` are the `ToolBackend` Protocol in `contracts/tools.py`. `FixtureToolBackend` (keyword search over each scenario's `kb.json`) is the stub; implement the Protocol for real integrations and pass it to `ChatSession`.
+`search_docs`, `search_jira`, `search_confluence`, `similar_cases`, `customer_history` are the `ToolBackend` Protocol in `src/callcopilot/shared/contracts/tools.py`. `FixtureToolBackend` (keyword search over each scenario's `kb.json`) is the stub; implement the Protocol for real integrations and pass it to `ChatSession`.

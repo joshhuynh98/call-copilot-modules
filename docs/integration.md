@@ -3,9 +3,9 @@
 ## As a Python library
 
 ```python
-from callcopilot.contracts import Transcript, RecommendationSet, StyleProfile, MeetingContext
-from callcopilot.llm import load_config
-from callcopilot.pipeline import make_llm, run_summary, run_email
+from callcopilot.shared.contracts import Transcript, RecommendationSet, StyleProfile, MeetingContext
+from callcopilot.shared.llm import load_config
+from callcopilot.app.pipeline import make_llm, run_summary, run_email
 from callcopilot.modules.chatbot import ChatSession
 
 cfg = load_config()                       # env vars; raises ConfigError with an actionable message
@@ -27,17 +27,18 @@ for event in chat.ask("What should I try next?"):
 | `POST /v1/summary` | `{transcript, recommendations?}` | `MeetingSummary` (grouped, v2.0; includes `recommendation_notes` when recommendations are given) |
 | `POST /v1/email` | `{transcript, style_profile, recommendations?, summary?}` | `EmailDraft` |
 | `POST /v1/email/check` | `{subject, body, recommendations?, summary?, signature?}` | `EmailReview`: `{passed, checks[], fixes[], suggested_body?}` for an edited draft |
+| `POST /v1/recommendations/review` | `RecommendationSet` | `SourceReview[]`: what opening each source (docs page, Jira ticket, Confluence page) showed |
 | `POST /v1/recommendations/evaluate` | `{recommendations, transcript?}` | `{passed, checks[]}` |
 | `PUT /v1/meetings/{id}` | `MeetingContext` | registers a meeting for chat |
 | `POST /v1/meetings/{id}/summary` / `/email` | none | generates and stores on the meeting |
 | `POST /v1/meetings/{id}/email/check` | `{subject, body}` | `EmailReview` using the meeting's recommendations and summary |
 | `POST /v1/meetings/{id}/chat` | `{message}` | SSE stream of `ChatEvent` |
 
-Errors: `{"error": "..."}` with `401` (bad `X-API-Key`), `404`, `502` (AI server failed or returned unusable output) or `503` (AI server not configured). Front-end specifics (CORS, API key, SSE, what to render): [frontend.md](frontend.md).
+The summary calls open the recommendations' sources first (see [reference-review.md](reference-review.md)), so `MeetingSummary.source_reviews` says which links worked. Errors: `{"error": "..."}` with `401` (bad `X-API-Key`), `404`, `502` (AI server failed or returned unusable output) or `503` (AI server not configured). Front-end specifics (CORS, API key, SSE, what to render): [frontend.md](frontend.md).
 
 ## Inputs we expect
 
-JSON Schema for all contracts is in `contracts/*.schema.json` (regenerate with `callcopilot schemas`). Fixture examples: `fixtures/scenarios/*/`.
+JSON Schema for all contracts is in `schemas/*.schema.json` (regenerate with `callcopilot schemas`). Fixture examples: `fixtures/scenarios/*/`.
 
 - **Transcript** (`transcript.schema.json`): `metadata` (case id, customer, contact, agent, product, version, times) and `segments[]` with `id`, `speaker` (`agent`|`customer`), `start_ms`, `end_ms`, `text_original`, `text_translated` (null if English), `language`, `confidence`, `is_final`. We reason over the translated text when present and flag segments with confidence < 0.6.
 - **Recommendations** (`recommendation_set.schema.json`): see [recommendations-spec.md](recommendations-spec.md).
@@ -54,7 +55,7 @@ Today they are backed by fixture files (`FileTranscriptSource`, `FileRecommendat
 
 ## Outputs
 
-`MeetingSummary`, `EmailDraft`, `ChatEvent`/`ChatResult` (schemas in `contracts/`). Everything user-facing is plain data; the UI decides rendering. `EmailDraft` must be shown as an editable draft with `claims_needing_verification` and `warnings` visible to the agent.
+`MeetingSummary`, `EmailDraft`, `ChatEvent`/`ChatResult` (schemas in `schemas/`). Everything user-facing is plain data; the UI decides rendering. `EmailDraft` must be shown as an editable draft with `claims_needing_verification` and `warnings` visible to the agent.
 
 ## Open questions
 

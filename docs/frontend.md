@@ -1,6 +1,6 @@
 # Front-end integration guide
 
-For whoever builds the webapp UI. Everything here is plain HTTP + JSON (+ one SSE stream). A working reference client is [demo.html](../src/callcopilot/static/demo.html) (plain JavaScript, no build step, served at `/` by the API). It renders everything described under "What the UI should render": recommendations cheatsheet, grouped summary with owner columns, uncertainty badges and clickable timestamp chips that highlight the transcript line, an editable email draft with live rule checks and a one-click fix, and streaming chat with copy-ready email boxes. Demo shortcuts: `/?scenario=<id>&tab=summary|email|chat&gen=summary|email|chat&q=<question>`.
+For whoever builds the webapp UI. Everything here is plain HTTP + JSON (+ one SSE stream). A working reference client is [demo.html](../src/callcopilot/app/static/demo.html) (plain JavaScript, no build step, served at `/` by the API). It renders everything described under "What the UI should render": recommendations cheatsheet, grouped summary with owner columns, uncertainty badges and clickable timestamp chips that highlight the transcript line, an editable email draft with live rule checks and a one-click fix, and streaming chat with copy-ready email boxes. Demo shortcuts: `/?scenario=<id>&tab=summary|email|chat&gen=summary|email|chat&q=<question>`.
 
 ## Run the API
 
@@ -12,10 +12,10 @@ Interactive docs: `http://127.0.0.1:8000/docs`. Health: `GET /health`.
 
 ## Types and clients
 
-- **OpenAPI spec:** `contracts/openapi.json` (committed; regenerate with `callcopilot schemas`) or `GET /openapi.json` from a running server.
-  `npx openapi-typescript contracts/openapi.json -o src/api.d.ts`
-- **JSON Schema per model:** `contracts/*.schema.json` (transcript, recommendation_set, style_profile, meeting_context, meeting_summary, email_draft, chat_event, chat_result, ...).
-  `npx json-schema-to-typescript contracts/email_draft.schema.json`
+- **OpenAPI spec:** `schemas/openapi.json` (committed; regenerate with `callcopilot schemas`) or `GET /openapi.json` from a running server.
+  `npx openapi-typescript schemas/openapi.json -o src/api.d.ts`
+- **JSON Schema per model:** `schemas/*.schema.json` (transcript, recommendation_set, style_profile, meeting_context, meeting_summary, email_draft, chat_event, chat_result, ...).
+  `npx json-schema-to-typescript schemas/email_draft.schema.json`
 
 ## Configuration for browsers
 
@@ -52,6 +52,7 @@ Stateless alternatives (no meeting registration) exist for the same operations: 
 | `POST /v1/meetings/{id}/chat` | `{message}` | `text/event-stream` |
 | `DELETE /v1/meetings/{id}/chat` | | `{reset: true}` |
 | `POST /v1/email/check` | `{subject, body, recommendations?, summary?, signature?}` | `EmailReview` |
+| `POST /v1/recommendations/review` | `RecommendationSet` | `SourceReview[]` |
 | `POST /v1/recommendations/evaluate` | `{recommendations, transcript?}` | `{passed, checks[]}` |
 | `GET /v1/scenarios`, `GET /v1/scenarios/{id}` | | demo data (fictional calls) |
 
@@ -112,6 +113,7 @@ An empty `token` may appear while the guard runs its second pass: ignore it.
 - **Editing the draft:** call `/email/check` on edit (debounced) or before send. `passed: false` means a hard rule is broken (markdown, meeting offer, ticket id, internal or invented link, too long, missing third-party scope statement). `checks[]` has a `name` and `details` per rule. `suggested_body` is an auto-fixed version when one exists: offer it as a one-click fix. Soft checks (`soft: true`) are advisory.
 - **Chat replies:** light markdown is fine. Text inside `<email>...</email>` is customer-pasteable plain text: show it in its own box with a copy button, without markdown rendering, and strip the tags. Show citations as links (`url`) and Jira keys (`jira_key`); these are for the agent only.
 - **Summary (v2.0, already grouped):** show `plain_language` first, then the sections in this order: `issues` (one or more), `before_call`, `in_call`, `findings`, **next steps grouped by `next_actions[].owner`** (`agent` = Support, `customer`, `opswat_other`), `open_questions`. Skip empty sections. Mark claims with `uncertain: true`, show `product.uncertain`, and highlight `low_confidence_segment_ids` in the transcript view. `segment_ids` on any claim link back to transcript segments. Show `third_party_components` as "out of OPSWAT scope". `recommendation_notes` lists duplicate or unrelated recommendations (`relevant: false`, with a short `note`): show them greyed out or under "set aside" rather than hiding them.
+- **Source review:** `summary.source_reviews[]` (match by `url`) says what happened when each recommendation source was opened before writing. Show a badge on each source chip: `ok` ✓, `redirected` ↪ (link `final_url`), `not_found` ✗, `blocked` or `error` ⚠ "could not be checked", `no_access` 🔒, `skipped` nothing. `recommendation_notes[].supported` (true/false/null) and `gist` say whether the opened content backs the action. An email warning "link not verified" means the link was kept but could not be opened.
 - **Recommendations (cheatsheet):** `action` as the headline, `rationale` as one or two lines, sources as labelled links by `type` (Public doc / Internal KB / Confluence / Jira). Order by `rank`.
 
 ## Things to know

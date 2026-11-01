@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from callcopilot.checks import EmailPolicy, check_email, enforce_email_text
-from callcopilot.contracts import EmailDraft
+from callcopilot.modules.email.checks import EmailPolicy, check_email, enforce_email_text
+from callcopilot.shared.contracts import EmailDraft
 
 
 class CheckItem(BaseModel):

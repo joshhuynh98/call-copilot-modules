@@ -2,11 +2,11 @@ import json
 
 import pytest
 
-from callcopilot.contracts import MeetingContext, MeetingSummary
-from callcopilot.llm import LLMConfig, LLMError
-from callcopilot.llm.fake import FakeLLM
+from callcopilot.shared.contracts import MeetingContext, MeetingSummary
+from callcopilot.shared.llm import LLMConfig, LLMError
+from callcopilot.shared.llm.fake import FakeLLM
 from callcopilot.modules.chatbot import ChatSession
-from callcopilot.tools import FixtureToolBackend
+from callcopilot.modules.chatbot.tools import FixtureToolBackend
 from conftest import EmptyBackend, ScriptedLLM
 
 DOC = "https://docs.example-opswat.invalid/icap/configuration/scan-timeouts"

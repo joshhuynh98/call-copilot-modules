@@ -4,21 +4,22 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-import callcopilot.api as api
-from callcopilot import policy
-from callcopilot.checks import EmailPolicy, check_email, enforce_email_text, failed
-from callcopilot.checks.style import check_style
-from callcopilot.contracts import CallBrief, EmailDraft, MeetingSummary, RecNote
-from callcopilot.llm import LLMConfig
+import callcopilot.app.api as api
+from callcopilot.shared import policy
+from callcopilot.modules.email.checks import EmailPolicy, check_email, enforce_email_text
+from callcopilot.shared.checks import failed
+from callcopilot.shared.checks import check_style
+from callcopilot.shared.contracts import CallBrief, EmailDraft, MeetingSummary, RecNote
+from callcopilot.shared.llm import LLMConfig
 from callcopilot.modules.chatbot import ChatSession
 from callcopilot.modules.email import draft_email
 from callcopilot.modules.recommendations import complete_notes, triage_recommendations
 from callcopilot.modules.summary import summarize
-from callcopilot.prompt_loader import load_prompt
-from callcopilot.render import render_summary
-from callcopilot.sources import list_scenarios, load_scenario
-from callcopilot.tools import FixtureToolBackend
-from callcopilot.contracts import MeetingContext
+from callcopilot.shared.prompt_loader import load_prompt
+from callcopilot.app.render import render_summary
+from callcopilot.shared.sources import list_scenarios, load_scenario
+from callcopilot.modules.chatbot.tools import FixtureToolBackend
+from callcopilot.shared.contracts import MeetingContext
 from conftest import ScriptedLLM
 
 FAKE = LLMConfig(provider="fake")
@@ -41,7 +42,7 @@ def test_summary_runs_organise_then_write(icap):
     assert "rec_1" in organise and "<<<BEGIN UNTRUSTED RECOMMENDATIONS>>>" in organise and "[seg_002]" in organise
     write = "\n".join(m.content for m in llm.calls[1][0])
     assert "Be brief." in write and "timed out waiting for Core scan result" in write  # style rules + the brief
-    assert s.meta["prompts"] == "organize@v1+summary@v2" and s.meta["chunks"] == 1
+    assert s.meta["prompts"] == "organize@v2+summary@v2" and s.meta["chunks"] == 1
 
 
 def test_groups_are_present_and_separate(icap):
@@ -154,8 +155,8 @@ def test_the_model_decides_format_and_length_there_are_no_email_settings(icap):
         assert principle in system, principle
     assert "{{" not in system  # every placeholder was filled
     import inspect
-    from callcopilot import contracts
-    from callcopilot.pipeline import run_email
+    from callcopilot.shared import contracts
+    from callcopilot.app.pipeline import run_email
     assert not hasattr(contracts, "EmailOptions") and "options" not in inspect.signature(draft_email).parameters
     assert "options" not in inspect.signature(run_email).parameters
     assert "email_options" not in contracts.MeetingContext.model_fields

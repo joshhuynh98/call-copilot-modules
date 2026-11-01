@@ -15,23 +15,24 @@ import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 
-from callcopilot import policy
-from callcopilot.checks import EmailPolicy, enforce_email_text
-from callcopilot.checks.chat import looks_like_unknown
-from callcopilot.contracts import (
+from callcopilot.shared import policy
+from callcopilot.modules.email.checks import EmailPolicy, enforce_email_text
+from callcopilot.modules.chatbot.checks import looks_like_unknown
+from callcopilot.shared.contracts import (
     ChatEvent, ChatResult, Citation, MeetingContext, SearchHit, SourceType, ToolBackend, ToolUse,
 )
-from callcopilot.llm import LLMClient, LLMConfig, LLMError, Message, Tag, ToolCall, ToolSpec
-from callcopilot.llm.structured import extract_json
+from callcopilot.shared.llm import LLMClient, LLMConfig, LLMError, Message, Tag, ToolCall, ToolSpec
+from callcopilot.shared.llm.structured import extract_json
 from callcopilot.modules.summary.summarize import estimate_tokens
-from callcopilot.prompt_loader import load_prompt
-from callcopilot.safety import UNTRUSTED_NOTICE, wrap_untrusted
-from callcopilot.tools import SEARCH_TOOLS, ToolError, ToolRegistry
+from callcopilot.shared.prompt_loader import load_prompt
+from callcopilot.shared.safety import UNTRUSTED_NOTICE, wrap_untrusted
+from callcopilot.modules.chatbot.tools import SEARCH_TOOLS, ToolError, ToolRegistry
 
 TOOL_CALL_PREFIX = "TOOL_CALL"
 HOLD_FOR_GUARD = 240  # chars of a fresh answer we hold back to check it isn't an unsearched "I don't know"
 MAX_TOOL_ROUNDS = 3
 HISTORY_LIMIT = 12
+MAX_REVIEW_CHARS = 400  # per opened source, in the chat context
 KEEP_FIRST = 5  # opening segments always kept in-prompt when the transcript exceeds the token budget
 
 PROTOCOL_PROMPTED = """Tools (read-only): search_docs(query, product?), search_jira(query), search_confluence(query), similar_cases(query), customer_history(customer){extra}.
@@ -118,10 +119,23 @@ class ChatSession:
         recs = self.meeting.recommendations
         if not recs or not recs.recommendations:
             return "(none provided)"
+        reviews = {rv.url: rv for rv in (self.meeting.summary.source_reviews if self.meeting.summary else [])}
+        notes = {n.rec_id: n for n in (self.meeting.summary.recommendation_notes if self.meeting.summary else [])}
         lines = []
         for r in sorted(recs.recommendations, key=lambda r: r.rank):
             srcs = "; ".join(f"[{s.type.value}] {s.label} {s.url}" + (f" ({s.jira_key})" if s.jira_key else "") for s in r.sources)
             lines.append(f"{r.rank}. {r.action} Why: {r.rationale} Sources: {srcs}")
+            n = notes.get(r.id)
+            if n is not None and n.supported is not None:
+                lines.append(f"   Checked against the opened sources: {'supported' if n.supported else 'NOT supported'}. {n.gist}".rstrip())
+            for s in r.sources:
+                rv = reviews.get(s.url)
+                if rv is None:
+                    continue
+                if rv.status in ("ok", "redirected") and rv.excerpt:
+                    lines.append(f"   Opened {s.label}: {' '.join(rv.excerpt.split())[:MAX_REVIEW_CHARS]}")
+                else:
+                    lines.append(f"   {s.label}: {rv.status.upper()}{(' - ' + rv.note) if rv.note else ''}")
         return wrap_untrusted("RECOMMENDATIONS", "\n".join(lines))
 
     def _system_prompt(self) -> str:

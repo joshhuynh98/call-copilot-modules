@@ -4,10 +4,10 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-import callcopilot.api as api
-from callcopilot.contracts import MeetingSummary
-from callcopilot.checks import EmailPolicy
-from callcopilot.llm import LLMConfig
+import callcopilot.app.api as api
+from callcopilot.shared.contracts import MeetingSummary
+from callcopilot.modules.email.checks import EmailPolicy
+from callcopilot.shared.llm import LLMConfig
 from callcopilot.modules.email import review_email
 
 FAKE = LLMConfig(provider="fake")
@@ -128,7 +128,7 @@ def test_meeting_scoped_email_check_uses_stored_context(icap):
 
 
 def test_export_writes_openapi_spec_for_client_generation(tmp_path):
-    from callcopilot.contracts.export import export
+    from callcopilot.app.export_schemas import export
     names = export(tmp_path)
     spec = json.loads((tmp_path / "openapi.json").read_text(encoding="utf-8"))
     assert "openapi" in names and "/v1/email/check" in spec["paths"] and "/v1/meetings/{meeting_id}/chat" in spec["paths"]

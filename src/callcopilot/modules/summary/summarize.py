@@ -10,14 +10,14 @@ and anything the writer lost is restored from the brief.
 """
 from __future__ import annotations
 
-from callcopilot.contracts import (
-    CallBrief, Claim, MeetingSummary, RecommendationSet, Segment, SummaryContent, SummaryCore, Transcript,
+from callcopilot.shared.contracts import (
+    CallBrief, Claim, MeetingSummary, RecommendationSet, Segment, SourceReview, SummaryContent, SummaryCore, Transcript,
 )
-from callcopilot.llm import LLMClient, LLMConfig, Tag, generate_structured
-from callcopilot.llm.structured import schema_hint
+from callcopilot.shared.llm import LLMClient, LLMConfig, Tag, generate_structured
+from callcopilot.shared.llm.structured import schema_hint
 from callcopilot.modules.recommendations import complete_notes
-from callcopilot.prompt_loader import load_prompt
-from callcopilot.safety import UNTRUSTED_NOTICE, wrap_untrusted
+from callcopilot.shared.prompt_loader import load_prompt
+from callcopilot.shared.safety import UNTRUSTED_NOTICE, wrap_untrusted
 
 CHUNK_OVERLAP_SEGMENTS = 2
 CLAIM_SECTIONS = ("issues", "before_call", "in_call", "findings", "open_questions")
@@ -51,14 +51,31 @@ def _metadata_block(transcript: Transcript) -> str:
             f"version on case: {m.product_version or 'unknown'}")
 
 
-def render_recommendations(recs: RecommendationSet | None) -> str:
+MAX_REVIEW_CHARS = 600  # per source, in the prompt
+
+
+def _review_line(source, review: SourceReview | None) -> str:
+    label = f"[{source.type.value}] {source.label}"
+    if review is None:
+        return f"  - {label}: not reviewed"
+    if review.status in ("ok", "redirected") and review.excerpt:
+        return f"  - {label}: OPENED. It says: {' '.join(review.excerpt.split())[:MAX_REVIEW_CHARS]}"
+    if review.status == "not_found":
+        return f"  - {label}: NOT FOUND ({review.note or 'the page does not exist'})"
+    return f"  - {label}: could not be read ({review.status}: {review.note or 'no reason given'})"
+
+
+def render_recommendations(recs: RecommendationSet | None, reviews: list[SourceReview] | None = None) -> str:
     if recs is None or not recs.recommendations:
         return "(none provided)"
+    by_url = {rv.url: rv for rv in reviews or []}
     lines = []
     for r in recs.recommendations:
         types = ", ".join(sorted({s.type.value for s in r.sources})) or "no sources"
         lines.append(f"{r.id} (rank {r.rank}): {r.title}. Action: {r.action} Why: {r.rationale} "
                      f"[sources: {types}; triggered by: {', '.join(r.trigger_segment_ids) or 'unknown'}]")
+        if reviews is not None:
+            lines += [_review_line(s, by_url.get(s.url)) for s in r.sources]
     return wrap_untrusted("RECOMMENDATIONS", "\n".join(lines))
 
 
@@ -83,7 +100,7 @@ def _keep_facts(core: SummaryCore, brief: CallBrief) -> None:
 
 
 def _finalize(core: SummaryCore, brief: CallBrief, transcript: Transcript, recs: RecommendationSet | None,
-              *, repairs: int, chunks: int, prompts: str) -> MeetingSummary:
+              *, repairs: int, chunks: int, prompts: str, reviews: list[SourceReview] | None = None) -> MeetingSummary:
     """Deterministic clean-up: drop evidence ids that don't exist, mark claims without evidence as uncertain."""
     _keep_facts(core, brief)
     valid = transcript.segment_ids()
@@ -97,19 +114,20 @@ def _finalize(core: SummaryCore, brief: CallBrief, transcript: Transcript, recs:
         item.segment_ids = [i for i in item.segment_ids if i in valid]
     summary.case_id = transcript.metadata.case_id
     summary.low_confidence_segment_ids = transcript.low_confidence_ids()
-    summary.recommendation_notes = complete_notes(recs, brief.recommendation_notes, len(summary.issues))
+    summary.recommendation_notes = complete_notes(recs, brief.recommendation_notes, len(summary.issues), reviews)
+    summary.source_reviews = list(reviews or [])
     summary.meta = {"prompts": prompts, "repairs": repairs, "chunks": chunks}
     return summary
 
 
 def summarize(transcript: Transcript, llm: LLMClient, config: LLMConfig | None = None,
-              recommendations: RecommendationSet | None = None) -> MeetingSummary:
+              recommendations: RecommendationSet | None = None, reviews: list[SourceReview] | None = None) -> MeetingSummary:
     config = config or LLMConfig()
     case_id = transcript.metadata.case_id
     organize = load_prompt("organize")
     chunks = chunk_segments(transcript.segments, transcript, config.transcript_token_budget)
     brief_schema = schema_hint(CallBrief)
-    recs_text = render_recommendations(recommendations)
+    recs_text = render_recommendations(recommendations, reviews)
     repairs = 0
     used = [organize.label]
 
@@ -148,7 +166,7 @@ def summarize(transcript: Transcript, llm: LLMClient, config: LLMConfig | None =
         brief=brief.model_dump_json(exclude={"recommendation_notes"}, indent=1), schema=schema_hint(SummaryCore),
     )
     core, r = generate_structured(llm, msgs, SummaryCore, tag=Tag("summary", case_id))
-    return _finalize(core, brief, transcript, recommendations, repairs=repairs + r, chunks=len(chunks), prompts="+".join(used))
+    return _finalize(core, brief, transcript, recommendations, repairs=repairs + r, chunks=len(chunks), prompts="+".join(used), reviews=reviews)
 
 
 __all__ = ["summarize", "SummaryContent"]
