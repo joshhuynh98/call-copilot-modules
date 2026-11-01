@@ -31,7 +31,7 @@ Every LLM call goes through one interface, `LLMClient` (`complete()` and `stream
 
 ## Reference review (ADR 0008)
 
-Before the summary is organised, `shared/references/` opens every source the recommendations cite: public docs through plain HTTP with a real-browser fallback (Playwright), Jira and Confluence through an Atlassian MCP client. Each becomes a `SourceReview` carried on `MeetingSummary.source_reviews`. The organise stage judges the recommendations with the opened content; the email links only to pages that exist and support the action and sees one-line gists, never raw page text. See [reference-review.md](reference-review.md).
+Before the summary is organised, `shared/references/` opens every source the recommendations cite: public docs through the docs platform's public JSON API (then plain HTTP, then a Playwright browser), Jira and Confluence through an Atlassian MCP client. Each becomes a `SourceReview` carried on `MeetingSummary.source_reviews`. The organise stage judges the recommendations with the opened content; the email links only to pages that exist and support the action and sees one-line gists, never raw page text. See [reference-review.md](reference-review.md).
 
 ## Summary module (organise first, then write; ADR 0007)
 

@@ -2,7 +2,9 @@
 
   REFERENCE_REVIEW            auto (default) | on | off | fixtures
                                 auto = on, except with AI_PROVIDER=fake where the offline fixture reader is used
-  REFERENCE_DOCS_MODE         auto (default) | http | browser   how public docs pages are read
+  REFERENCE_DOCS_MODE         auto (default) | devhub | http | browser   how public docs pages are read
+                                auto = the docs platform's public JSON API first, then plain HTTP, then a browser
+  REFERENCE_DOCS_API          optional override of the docs platform API base URL (tests, mirrors)
   REFERENCE_ALLOWED_HOSTS     comma list; default docs.opswat.com,www.opswat.com. Only these hosts are ever fetched
   REFERENCE_TIMEOUT_SECONDS   per source, default 20
   REFERENCE_EXCERPT_CHARS     how much of each source is kept, default 1200
@@ -20,13 +22,15 @@ from callcopilot.shared.llm.config import ConfigError
 
 DEFAULT_ALLOWED_HOSTS = ("docs.opswat.com", "www.opswat.com")
 MODES = ("auto", "on", "off", "fixtures")
-DOCS_MODES = ("auto", "http", "browser")
+DOCS_MODES = ("auto", "devhub", "http", "browser")
+DEFAULT_DOCS_API = "https://api.developerhub.io/api/public"
 
 
 @dataclass(frozen=True)
 class ReferenceConfig:
     mode: str = "off"  # resolved: on | off | fixtures
     docs_mode: str = "auto"
+    docs_api: str = DEFAULT_DOCS_API
     allowed_hosts: tuple[str, ...] = DEFAULT_ALLOWED_HOSTS
     timeout_s: float = 20.0
     excerpt_chars: int = 1200
@@ -67,7 +71,7 @@ def load_reference_config(env=None, *, provider: str | None = None) -> Reference
 
     hosts = tuple(h.strip().lower() for h in _get(env, "REFERENCE_ALLOWED_HOSTS").split(",") if h.strip()) or DEFAULT_ALLOWED_HOSTS
     return ReferenceConfig(
-        mode=mode, docs_mode=docs_mode, allowed_hosts=hosts,
+        mode=mode, docs_mode=docs_mode, allowed_hosts=hosts, docs_api=_get(env, "REFERENCE_DOCS_API") or DEFAULT_DOCS_API,
         timeout_s=number("REFERENCE_TIMEOUT_SECONDS", float, 20.0),
         excerpt_chars=number("REFERENCE_EXCERPT_CHARS", int, 1200),
         browser_channel=_get(env, "REFERENCE_BROWSER_CHANNEL"),

@@ -5,7 +5,7 @@ Before the summary and email are written, the tool opens every source the recomm
 ```
 recommendations ──► ReferenceReviewer ──► SourceReview[] ──► organise (judges relevance, "supported?", one-line gist)
   (with sources)      │                                    ├─► email (links only to pages that exist and support the action)
-                      ├─ public_doc  → DocsReader (HTTP, then a real browser)
+                      ├─ public_doc  → DocsReader (docs platform JSON API, then plain HTTP, then a real browser)
                       ├─ jira        → AtlassianReader (MCP getJiraIssue)
                       ├─ confluence  → AtlassianReader (MCP getConfluencePage)
                       └─ other types → skipped (no reader)
@@ -37,7 +37,8 @@ It runs in `run_summary` (`app/pipeline.py`), so the CLI, the HTTP API and the e
 | Variable | Meaning |
 |---|---|
 | `REFERENCE_REVIEW` | `auto` (default): on, but with `AI_PROVIDER=fake` it reads the fixture copies so demos work offline. `on`, `off`, `fixtures` |
-| `REFERENCE_DOCS_MODE` | `auto` (default): plain HTTP first, a browser if that is blocked or the page has no text without JavaScript. `http` or `browser` to force one |
+| `REFERENCE_DOCS_MODE` | `auto` (default): the docs platform's public JSON API first, then plain HTTP, then a browser. `devhub`, `http` or `browser` to force one step |
+| `REFERENCE_DOCS_API` | optional override of the docs platform API base URL (default `https://api.developerhub.io/api/public`); for tests or a mirror |
 | `REFERENCE_ALLOWED_HOSTS` | the only hosts ever fetched; default `docs.opswat.com,www.opswat.com`. https only. Every redirect hop is re-checked |
 | `REFERENCE_BROWSER_CHANNEL` | `msedge` or `chrome` to use an installed browser; blank uses Playwright's own (`playwright install chromium`) |
 | `REFERENCE_TIMEOUT_SECONDS`, `REFERENCE_EXCERPT_CHARS` | per source (default 20 s, 1200 characters) |
@@ -70,35 +71,33 @@ It prints each source's status, where it leads, its title, and the excerpt, plus
 | Real browser (Playwright) rendering a JavaScript-only page, where plain HTTP sees nothing | Tested locally against a test page (skipped if no browser is installed) |
 | MCP client (handshake, session, headers, JSON and SSE replies, tool errors) | Tested against a mock server and against a real MCP server built with the official SDK |
 | Reading Atlassian's real tools (`getJiraIssue`, `getConfluencePage`) | **Not tested against the live Atlassian MCP server.** It needs a credential this repo does not have. The argument names come from the published tool signatures |
-| Reading the real docs site | **Does not work from this machine yet. See below** |
+| Reading the real docs (MetaDefender Core and ICAP Server pages, versions, old host, dead links) | **Works, verified live** through the platform's public API (opt-in live test: `RUN_LIVE_DOCS=1`). The website itself still refuses automated access; see below |
 
-## The docs site currently refuses automated access
+## How the public docs are read: the platform's JSON API
 
-Tried on 2026-11-01 against `docs.opswat.com` (it redirects to `www.opswat.com/docs`):
+The OPSWAT docs website refuses automated access (tried 2026-11-01): plain HTTP returns an empty JavaScript shell for every URL, even a page that does not exist, and a headless browser with default settings gets **HTTP 403**. This tool does **not** try to get around that (no disguised browser identity, no stealth settings).
 
-- **Plain HTTP:** every URL returns an empty JavaScript shell with no readable text, including a page that does not exist. So plain HTTP cannot even tell a live page from a dead one.
-- **A real browser (headless Edge, default settings):** the site answers **HTTP 403** to every page.
-
-So today the docs reader reports `blocked` for these links, the pipeline carries on, the email keeps the link and warns the agent that it could not be verified, and `callcopilot review` shows exactly that.
-
-**A route that does work (found 2026-11-01, not built into the tool yet):** the docs are hosted on DeveloperHub, which serves every page as JSON through a public, unauthenticated API (the `opswat-docs-reader` skill documents it). Reading `https://www.opswat.com/docs/mdcore` this way worked: the lookup returned the MetaDefender Core project (30 public versions, latest v5.23.0, 22 sections such as Configuration, Installation, Troubleshooting, Release Notes), a section index (Configuration: 84 pages) and a real page ("Management Console - Login", whose text says the console is at `http://<server>:<port>`, default `http://localhost:8008`).
+Instead it uses what the docs are hosted on. They are served by DeveloperHub, which exposes every page as JSON through a **public, unauthenticated API** meant for programmatic use (the `opswat-docs-reader` skill documents it). `devhub.py` resolves a docs URL in three requests and caches the result:
 
 ```
-GET https://api.developerhub.io/api/public/project/www.opswat.com?path=/docs/mdcore        project, versions, sections
-GET https://api.developerhub.io/api/public/documentation/{section_id}/index                 the section's page tree
-GET https://api.developerhub.io/api/public/page/{page_id}                                   one page: title, slug, body (JSON document)
+GET https://api.developerhub.io/api/public/project/www.opswat.com?path=/docs/<product>   versions and sections (300 to 700 KB: cached per product)
+GET https://api.developerhub.io/api/public/documentation/<section id>/index              the section's pages, each with id, slug and title (cached)
+GET https://api.developerhub.io/api/public/page/<page id>                                the page: title and body (a structured JSON document)
 ```
 
-Things to know before building a reader on it: the project lookup resolves a URL to its **product**, not to a page, so a page URL has to be matched by walking the section index and reading pages until the slug matches (cacheable); a page's text is in `body` (a structured JSON document), and `content` can be empty; entries of type `category` are folders; the lookup response is large (300 to 700 KB), so cache it per product; a dead page URL still returns the product, so "page not found" must be decided by failing to match the slug. This route is a documented public API, not a way around the site's protection, but it is a third party's API, so it should be confirmed with the docs owners as the supported route.
+Address shapes handled: `www.opswat.com/docs/<product>[/<version>][/<section>[/<page>]]` and the old `docs.opswat.com/<product>/...`. A page URL gives the real page text (lists and tables are turned into plain lines, one list item or table row per line); a product or section URL gives a short description of what is there.
 
-**This tool does not try to get around the site's bot protection** (no disguised browser identity, no stealth settings). That should be solved with the owners of the docs site. Options, roughly in order of preference:
+Behaviours worth knowing (all tested, offline and against the live API):
 
-0. **Use the DeveloperHub public API described above** (needs a small reader built; confirm with the docs owners).
-1. Ask the docs/web team for a sanctioned route for this service: an allowlisted IP, an API key or token header, or an internal mirror of the docs.
-2. Read from the docs' source (a repository or export of the pages) instead of the website.
-3. Use a search or sitemap API if the site exposes one.
+- **Unknown products silently fall back to another project** (`/docs/zzzz` returns MetaDefender Core). The reader checks the returned project's `basepath` itself, so an unknown product is `not_found`.
+- **A page is matched by the section index's slug**, not by the page JSON's own slug (they can differ).
+- **`not_found` is definitive** (no such product, section or page) and is not second-guessed by the website. A docs *version* the API does not serve is reported as `error`, not `not_found`, because the website may still have it; the pipeline then falls back to plain HTTP and the browser.
+- **Safety:** only the configured API host is contacted, only a validated product slug and numeric ids are placed in API URLs, and page slugs are only compared, never interpolated.
+- **Order in `auto` mode:** the API, then plain HTTP, then a browser (Playwright). `REFERENCE_DOCS_MODE=devhub|http|browser` forces one step.
 
-Once there is a route, the change is small: the reader would take extra headers or a different base URL (not built yet, since it depends on what is offered).
+Verified live on 2026-11-01: product, section and page URLs for MetaDefender Core and ICAP Server (latest, versioned such as `v5.14.1`, and the old `docs.opswat.com` form), dead pages, and an unknown product. Reproduce with `RUN_LIVE_DOCS=1 pytest tests/test_devhub.py -k live`, or `callcopilot review --url <docs link>`.
+
+**Dependency to confirm:** this is a third-party platform's public API. It could change or be rate-limited without notice, so the docs owners should confirm it as the supported route for this service. If they prefer another (an allowlisted IP, a token header, an internal mirror, or the docs source files), the reader needs only a different base URL or extra headers; `REFERENCE_DOCS_API` already overrides the base URL.
 
 ## Limits
 

@@ -41,7 +41,7 @@ Approved plan for the modules I own. Timeline: 2 weeks; build fast, leave time t
 5. Who owns the third-party scope list (VDI, proxies, firewalls, SSL inspection, other vendors)?
 6. Recommendations: `rank`, `trigger_segment_ids` and `sources[].type` are required by our quality bar. Can the recommendation module produce them?
 7. How are internal vs public docs distinguished at source? We rely on `sources[].type == public_doc` for customer-visible links.
-8. **Docs site access:** www.opswat.com/docs answers plain HTTP with an empty JavaScript shell and a headless browser with HTTP 403. A public DeveloperHub JSON API (`api.developerhub.io/api/public`) does serve the pages; can the docs owners confirm it as the supported route for this service (or offer an allowlist, token or mirror)? We do not bypass the protection.
+8. **Docs access (confirm with the docs owners):** www.opswat.com/docs refuses automated access (empty JavaScript shell over HTTP, 403 to a headless browser). The tool reads the docs through the platform's public JSON API (`api.developerhub.io/api/public`), which works and is verified live. It is a third party's public API: can the docs owners confirm it as the supported route for this service, or offer an allowlist, token or mirror instead? We do not bypass the website's protection.
 9. **Atlassian MCP access:** which MCP endpoint and `Authorization` header can a server use non-interactively (service account, API token, or OAuth)? Which Jira projects and Confluence spaces should it be allowed to read?
 
 ## Build order

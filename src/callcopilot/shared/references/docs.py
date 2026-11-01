@@ -1,7 +1,9 @@
 """Opens public documentation pages (docs.opswat.com / www.opswat.com/docs) and returns their readable text.
 
-Plain HTTP first (fast, no browser). If the site blocks plain requests (403/429) or the page needs JavaScript to show
-any text, it falls back to a real browser through Playwright (optional dependency; `REFERENCE_DOCS_MODE=browser` forces it).
+Order in `auto` mode: (1) the docs platform's public JSON API (devhub.py), which the website's bot protection does not block;
+(2) plain HTTP; (3) a real browser through Playwright (optional dependency), for pages that need JavaScript. A definitive answer
+from the API ("opened" or "no such page") is final; any other outcome falls through to the next step.
+`REFERENCE_DOCS_MODE=devhub|http|browser` forces one step.
 
 Safety: only https URLs on `REFERENCE_ALLOWED_HOSTS` are ever requested, and every redirect hop is re-checked, so a bad
 link in a recommendation cannot make the server fetch internal addresses (SSRF). Content is untrusted data.
@@ -16,6 +18,7 @@ from urllib.parse import urljoin, urlparse
 import httpx
 
 from .config import ReferenceConfig
+from .devhub import DeveloperHubReader
 from .html_text import extract_page
 from .types import Fetched
 
@@ -41,6 +44,7 @@ class DocsReader:
         self.cfg = cfg
         self._http = httpx.Client(timeout=cfg.timeout_s, transport=transport, follow_redirects=False,
                                   headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"})
+        self._devhub = DeveloperHubReader(cfg, transport=transport)
         self._browser_fetch = browser_fetch or self._playwright_fetch
         self._browser_lock = threading.Lock()  # Playwright's sync API is not thread-safe
         self._cache: dict[str, tuple[float, Fetched]] = {}
@@ -59,15 +63,25 @@ class DocsReader:
         if cached:
             return cached
         mode = self.cfg.docs_mode
+        if mode in ("auto", "devhub"):
+            via_api = self._devhub.read(url)  # None: not an OPSWAT docs address
+            if via_api is not None and (via_api.status in ("ok", "not_found") or mode == "devhub"):
+                self._remember(url, via_api)
+                return via_api
+            if mode == "devhub":
+                return Fetched("skipped", note="not an OPSWAT docs address the docs API can resolve")
         result = self._read_http(url) if mode in ("http", "auto") else None
         if mode == "browser" or (mode == "auto" and result is not None and result.status == "blocked"):
             browsed = self._read_browser(url)
             result = browsed if browsed.status != "error" or result is None else _with_note(result, browsed.note)
         assert result is not None
+        self._remember(url, result)
+        return result
+
+    def _remember(self, url: str, result: Fetched) -> None:
         if result.status in ("ok", "redirected", "not_found"):
             with self._cache_lock:
                 self._cache[url] = (time.monotonic(), result)
-        return result
 
     # -- plain HTTP ----------------------------------------------------------------------------------------
     def _read_http(self, url: str) -> Fetched:

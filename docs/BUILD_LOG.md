@@ -24,8 +24,9 @@ Status as of 2026-10-31 (week 1 of 2), after the summary rework, the warmer-emai
 | Demo page | `demo.html` now renders the JSON: grouped summary with owner columns, uncertainty badges, clickable timestamp chips that highlight the transcript line, recommendations cheatsheet (set-aside items greyed), editable email with live checks and one-click fix, streaming chat with copy-ready email boxes; URL shortcuts for demos; checked with headless-browser screenshots | `tests/test_frontend_support.py` (page only calls endpoints that exist) |
 | Restructure for hand-off | All functional code is now in three folders under `src/callcopilot/`: `modules/` (summary, email, chatbot, recommendations, each with its own code, checks and prompts), `shared/` (contracts, LLM client, safety, policy, sources) and `app/` (API, CLI, evals, demo page). The exported JSON Schema folder is now `schemas/` (was `contracts/`, which clashed with the Python package of the same name). Package map in `src/callcopilot/README.md`; a test enforces the one-way dependency rules | `tests/test_layout.py` |
 | Source review (ADR 0008) | Opens every source the recommendations cite before writing: public docs (plain HTTP, real-browser fallback via Playwright, allowlist + SSRF guard), Jira and Confluence (own MCP client calling `getJiraIssue` / `getConfluencePage`), offline fixture mode for demos. Organise stage judges recommendations with the opened content (`supported`, `gist`); email links only to existing, supporting pages and sees gists only; chat shows opened excerpts; `callcopilot review` and `POST /v1/recommendations/review`; demo page badges | `tests/test_references.py` (35 tests, incl. a real browser and the official MCP SDK server) |
+| Docs reader on the platform's public API | `DeveloperHubReader` resolves www.opswat.com/docs and old docs.opswat.com URLs (product, version, section, page) to the real page text through DeveloperHub's public JSON API; `auto` mode tries it first, then plain HTTP, then a browser. Lists and tables come out one line per item or row. Unknown products (which the API answers with another project), unserved versions and slug tricks are handled. Verified live on MetaDefender Core and ICAP Server pages, dead links and an unknown product | `tests/test_devhub.py` (25 offline + 1 opt-in live test, `RUN_LIVE_DOCS=1`) |
 
-206 tests pass offline.
+232 tests pass offline (plus 1 opt-in live test).
 
 ## Fixes found while building (kept for context)
 
@@ -37,7 +38,7 @@ Status as of 2026-10-31 (week 1 of 2), after the summary rework, the warmer-emai
 
 ## Not done / next
 
-0. **Build a DeveloperHub reader for the public docs** ([reference-review.md](reference-review.md): the public JSON API serves the docs; reading `/docs/mdcore` worked). Then **source review needs two accesses before it is fully real** (see [reference-review.md](reference-review.md)): a sanctioned route to the docs site (it currently gives plain HTTP an empty JavaScript shell and a headless browser an HTTP 403), and an Atlassian MCP endpoint plus non-interactive credential. Until then those sources are reported as `blocked` / `no_access` and the pipeline carries on. The Atlassian tool calls are untested against the live server.
+0. **Confirm the docs route and get Atlassian access.** Docs are read through the platform's public JSON API (works, verified live; the owners should confirm it is the supported route). **Source review still needs Atlassian MCP access to be fully real** (see [reference-review.md](reference-review.md)): a sanctioned route to the docs site (it currently gives plain HTTP an empty JavaScript shell and a headless browser an HTTP 403), and an Atlassian MCP endpoint plus non-interactive credential. Until then those sources are reported as `blocked` / `no_access` and the pipeline carries on. The Atlassian tool calls are untested against the live server.
 1. **Run against a real AI server** (Claude or local) and read the judge scores. Expect prompt tuning for weaker models; check `email_first_pass_clean` and `repairs` in `meta`.
 2. Agree the third-party term list and the open questions in [PLAN.md](PLAN.md) with the other module owners.
 3. Replace `FixtureToolBackend` with real docs/Jira/Confluence integrations (the Protocol is in `src/callcopilot/shared/contracts/tools.py`).
@@ -48,7 +49,7 @@ Status as of 2026-10-31 (week 1 of 2), after the summary rework, the warmer-emai
 ## Known limits
 
 - Fake provider proves plumbing and checks, not model quality.
-- Source review: excerpts are chosen by keyword overlap, only the first 12 distinct sources are opened, `internal_kb` and `past_case` sources have no reader, and the docs site and live Atlassian server could not be exercised from this repository.
+- Source review: excerpts are chosen by keyword overlap, only the first 12 distinct sources are opened, `internal_kb` and `past_case` sources have no reader, and the live Atlassian server could not be exercised from this repository.
 - Redaction is regex-based; free-text names not in the call metadata are not caught. Four-part dotted numbers look like IPs.
 - Third-party troubleshooting detection is a heuristic (term list + verbs + scope phrases).
 - Style (concise, plain English, no filler) is only approximated by soft checks (filler phrases, line and sentence length); the judge rubric and a human read are the real test. The summary now costs two model calls.
