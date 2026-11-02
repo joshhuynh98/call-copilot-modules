@@ -15,9 +15,12 @@ DEFAULT_QUESTIONS = ["What did the customer say about the version?", "What shoul
 def _load_inputs(args):
     """Returns (transcript, recommendations|None, style|None, scenario|None)."""
     from callcopilot.shared.sources import FileRecommendationSource, FileTranscriptSource, load_scenario
+    if getattr(args, "live_docs", False) and not args.scenario:
+        raise SystemExit("--live-docs picks a scenario's real-docs recommendations: use it with --scenario <id> "
+                         "(or pass your own --recs <file.json>).")
     if args.scenario:
         sc = load_scenario(args.scenario)
-        return sc.transcript, sc.recommendations, sc.style, sc
+        return sc.transcript, sc.recommendations_for(getattr(args, "live_docs", False)), sc.style, sc
     if not args.transcript:
         raise SystemExit("Provide --scenario <id> (see `callcopilot scenarios`) or --transcript <file.json>.")
     recs = FileRecommendationSource(args.recs).get_recommendations() if getattr(args, "recs", None) else None
@@ -149,7 +152,8 @@ def cmd_review(args):
         kind = args.type or ("jira" if args.jira or "/browse/" in args.url else "confluence" if "/wiki/" in args.url else "public_doc")
         reviews = [reviewer.review_source(Source(type=SourceType(kind), label=args.url, url=args.url, jira_key=args.jira))]
     elif args.recs or args.scenario:
-        recs = FileRecommendationSource(args.recs).get_recommendations() if args.recs else load_scenario(args.scenario).recommendations
+        recs = (FileRecommendationSource(args.recs).get_recommendations() if args.recs
+                else load_scenario(args.scenario).recommendations_for(args.live_docs))
         reviews = reviewer.review(recs)
     else:
         raise SystemExit("Give --url <link> (optionally --type/--jira), or --scenario <id>, or --recs <file.json>.")
@@ -218,6 +222,8 @@ def build_parser() -> argparse.ArgumentParser:
             sp.add_argument("--transcript", help="transcript JSON file")
             sp.add_argument("--recs", help="recommendations JSON file")
             sp.add_argument("--style", help="style profile JSON file")
+            sp.add_argument("--live-docs", action="store_true",
+                            help="with --scenario: use its recommendations with real docs.opswat.com links (needs internet)")
         return sp
 
     add("scenarios", cmd_scenarios, "list fixture scenarios", fake=False)
@@ -233,6 +239,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--type", choices=["public_doc", "jira", "confluence"], help="source type (guessed from the URL if omitted)")
     sp.add_argument("--jira", help="Jira ticket key for a Jira source")
     sp.add_argument("--scenario", help="review all sources of a fixture scenario's recommendations")
+    sp.add_argument("--live-docs", action="store_true", help="with --scenario: review the real-docs variant of its recommendations")
     sp.add_argument("--recs", help="review all sources of a recommendations JSON file")
     sp = add("recs-eval", cmd_recs_eval, "score any recommendations payload against the quality bar", fake=False)
     sp.add_argument("recommendations", help="recommendations JSON file")

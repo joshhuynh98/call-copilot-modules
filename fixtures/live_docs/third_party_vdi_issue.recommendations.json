@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "case_id": "CASE-24377",
+  "recommendations": [
+    {
+      "id": "rec_1",
+      "rank": 1,
+      "title": "Confirm Endpoint behaviour from the log against the documented non-persistent guidance",
+      "action": "Confirm from the Endpoint log what failed at registration and compare with the non-persistent desktop guidance.",
+      "rationale": "The log shows a certificate trust failure at registration and the settings file missing at start; the docs describe how Endpoint behaves on desktops that reset at every logoff.",
+      "sources": [
+        {
+          "type": "public_doc",
+          "label": "MetaDefender Endpoint: Registration & Setup",
+          "url": "https://www.opswat.com/docs/mdendpoint/v2610/installation/registration---setup"
+        },
+        {
+          "type": "internal_kb",
+          "label": "KB: Endpoint shows unregistered after desktop reset",
+          "url": "https://kb.internal.example.invalid/articles/endpoint-unregistered-after-desktop-reset"
+        }
+      ],
+      "confidence": 0.82,
+      "trigger_segment_ids": [
+        "seg_002",
+        "seg_008",
+        "seg_010"
+      ]
+    },
+    {
+      "id": "rec_2",
+      "rank": 2,
+      "title": "Explain scope: virtual desktop platform and inspection proxy are third-party",
+      "action": "Tell the customer the VDI profile and proxy parts are third-party and out of scope; their teams and vendors own them.",
+      "rationale": "The late profile restore and the proxy's replaced certificate are third-party behaviour, so no OPSWAT product fix applies. Keep the reply short and clear.",
+      "sources": [
+        {
+          "type": "confluence",
+          "label": "Support scope: third-party virtual desktop and network products",
+          "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/21877"
+        },
+        {
+          "type": "internal_kb",
+          "label": "KB: Explaining third-party scope to customers",
+          "url": "https://kb.internal.example.invalid/articles/explaining-third-party-scope"
+        }
+      ],
+      "confidence": 0.74,
+      "trigger_segment_ids": [
+        "seg_004",
+        "seg_008",
+        "seg_010",
+        "seg_011"
+      ]
+    },
+    {
+      "id": "rec_3",
+      "rank": 3,
+      "title": "Share the Endpoint server connection and certificate requirements",
+      "action": "Send the documented Endpoint server connection and certificate requirements for the customer's team to compare.",
+      "rationale": "The doc states what the Endpoint client must trust and reach to register; applying it to the customer's own network is their team's job.",
+      "sources": [
+        {
+          "type": "public_doc",
+          "label": "MetaDefender Endpoint: server connection and certificate requirements",
+          "url": "https://docs.example-opswat.invalid/endpoint/networking/server-connection-certificates",
+          "snippet": "Lists the server addresses, ports and certificate trust the Endpoint client needs in order to register."
+        }
+      ],
+      "confidence": 0.6,
+      "trigger_segment_ids": [
+        "seg_008",
+        "seg_009"
+      ]
+    },
+    {
+      "id": "rec_4",
+      "rank": 4,
+      "title": "Known issue: settings not retained after logoff on non-persistent desktops",
+      "action": "Check whether the open ticket on lost settings after logoff applies to MetaDefender Endpoint 4.2.1.",
+      "rationale": "A similar report exists for non-persistent desktops; confirms whether the documentation note or a workaround applies to this version.",
+      "sources": [
+        {
+          "type": "jira",
+          "label": "Endpoint: settings not retained after logoff on non-persistent desktops",
+          "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-50418",
+          "jira_key": "SUP-50418"
+        }
+      ],
+      "confidence": 0.4,
+      "trigger_segment_ids": [
+        "seg_002",
+        "seg_006"
+      ]
+    }
+  ]
+}

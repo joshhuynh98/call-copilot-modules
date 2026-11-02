@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0",
+  "case_id": "CASE-24101",
+  "recommendations": [
+    {
+      "id": "rec_1",
+      "rank": 1,
+      "title": "Raise the ICAP scan timeout above the archive scan time",
+      "action": "Have the customer raise the ICAP Server scan timeout from 60s to 300s, then retest with the 80 MB zip.",
+      "rationale": "Log shows ICAP Server gives up after 60s waiting for Core, which matches failures only on large archives.",
+      "sources": [
+        {
+          "type": "public_doc",
+          "label": "MetaDefender ICAP Server: Why do large files fails to upload to ICAP via F5 BIGIP ASM?",
+          "url": "https://www.opswat.com/docs/mdicap/v5.16.1/knowledge-base/why-do-large-files-fails-to-upload-to-icap-via-f5-bigip-asm-"
+        },
+        {
+          "type": "internal_kb",
+          "label": "KB: ICAP 500 after 60 seconds on large archives",
+          "url": "https://kb.internal.example.invalid/articles/icap-500-large-archives"
+        }
+      ],
+      "confidence": 0.86,
+      "trigger_segment_ids": [
+        "seg_004",
+        "seg_008",
+        "seg_009"
+      ]
+    },
+    {
+      "id": "rec_2",
+      "rank": 2,
+      "title": "Check Core archive handling limits for large zips",
+      "action": "Review Core archive extraction limits (file count, total extracted size) for the customer's workflow profile.",
+      "rationale": "Zips with hundreds of pages may hit extraction limits or simply scan slowly, independent of the ICAP timeout.",
+      "sources": [
+        {
+          "type": "public_doc",
+          "label": "MetaDefender Core: Archive Extraction Engine configuration",
+          "url": "https://www.opswat.com/docs/mdcore/v5.23.0/utilities-engines/extraction-configuration"
+        },
+        {
+          "type": "confluence",
+          "label": "Sizing archive scans on Core 5.x",
+          "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/20114"
+        }
+      ],
+      "confidence": 0.62,
+      "trigger_segment_ids": [
+        "seg_009",
+        "seg_010"
+      ]
+    },
+    {
+      "id": "rec_3",
+      "rank": 3,
+      "title": "Known issue: ICAP preview size and large uploads",
+      "action": "Check whether the open ticket on large uploads applies to ICAP Server 5.8.0.",
+      "rationale": "A similar report exists for 5.8.x; confirms whether a hotfix or workaround is documented.",
+      "sources": [
+        {
+          "type": "jira",
+          "label": "ICAP: 500 returned on uploads over 50 MB",
+          "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-48211",
+          "jira_key": "SUP-48211"
+        }
+      ],
+      "confidence": 0.41,
+      "trigger_segment_ids": [
+        "seg_002",
+        "seg_006"
+      ]
+    }
+  ]
+}

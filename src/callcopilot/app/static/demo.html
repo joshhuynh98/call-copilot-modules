@@ -43,7 +43,7 @@ textarea{min-height:200px;resize:vertical;overflow:hidden;line-height:1.5;font-f
 .qs{display:flex;gap:6px;flex-wrap:wrap;padding:8px 16px 0;background:var(--bg)}.qs button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:3px 10px;cursor:pointer;font-size:12px}
 .chatin{display:flex;gap:8px;padding:10px 16px;background:var(--bg)}code{background:#eef0f3;padding:0 4px;border-radius:4px}
 </style></head><body>
-<header><b>Call Copilot</b><select id="scn"></select><span id="meta"></span><span id="status"></span></header>
+<header><b>Call Copilot</b><select id="scn"></select><label style="font-size:12px" title="Use recommendations whose docs links are real opswat.com pages, so the source review opens them (needs internet)"><input type="checkbox" id="live"> Real docs links</label><span id="meta"></span><span id="status"></span></header>
 <main>
   <section id="left"><h3>Live transcript</h3><div id="transcript"></div></section>
   <section id="right">
@@ -225,15 +225,17 @@ $("qs").onclick=e=>{if(e.target.tagName==="BUTTON")ask(e.target.textContent)};
 
 // ---- load
 async function load(id){
-  ctx=await api(`/v1/scenarios/${id}`);
+  ctx=await api(`/v1/scenarios/${id}?live_docs=${$("live").checked}`);
   await api(`/v1/meetings/${mid}`,jsonReq("PUT",ctx));
   summary=draft=suggested=null;
   renderTranscript();renderRecs();
   $("summary-out").innerHTML="";$("email-out").style.display="none";$("chatlog").innerHTML="";
 }
 $("scn").onchange=e=>load(e.target.value).catch(err=>setStatus("Error: "+err.message));
-// Demo shortcuts: /?scenario=<id>&tab=summary|email|chat&gen=summary|email|chat&q=<question> (add &key=... if an API key is set)
+$("live").onchange=()=>load($("scn").value).catch(err=>setStatus("Error: "+err.message));
+// Demo shortcuts: /?scenario=<id>&live=1&tab=summary|email|chat&gen=summary|email|chat&q=<question> (add &key=... if an API key is set)
 const Q=new URLSearchParams(location.search);
+$("live").checked=Q.get("live")==="1";
 api("/v1/scenarios").then(l=>{
   $("scn").innerHTML=l.map(s=>`<option value="${s.id}">${esc(s.customer)} - ${s.id}</option>`).join("");
   const id=l.some(s=>s.id===Q.get("scenario"))?Q.get("scenario"):l[0].id;$("scn").value=id;return load(id);

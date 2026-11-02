@@ -52,6 +52,7 @@ Optional install: `uv pip install -e ".[browser]"` for Playwright.
 .venv\Scripts\callcopilot review --url https://www.opswat.com/docs/mdicap/configuration/additional-tuning
 .venv\Scripts\callcopilot review --url https://yourorg.atlassian.net/browse/SUP-123 --jira SUP-123
 .venv\Scripts\callcopilot review --scenario icap_upload_timeouts      # every source of a recommendation set
+.venv\Scripts\callcopilot review --scenario icap_upload_timeouts --live-docs   # same, with real docs.opswat.com links
 ```
 
 It prints each source's status, where it leads, its title, and the excerpt, plus whether the browser fallback and Atlassian MCP are configured. This is the quickest way to see what works in your environment.

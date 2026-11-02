@@ -28,7 +28,7 @@ from callcopilot.shared.llm import ConfigError, LLMConfig, LLMError, load_config
 from callcopilot.modules.chatbot import ChatSession
 from callcopilot.modules.email import EmailReview, review_email
 from callcopilot.app.pipeline import make_llm, make_reference_reviewer, run_email, run_summary
-from callcopilot.shared.sources import list_scenarios, load_scenario
+from callcopilot.shared.sources import has_live_docs, list_scenarios, load_scenario
 from callcopilot.modules.chatbot.tools import FixtureToolBackend
 
 STATIC = Path(__file__).parent / "static"
@@ -209,15 +209,18 @@ def create_app(config: LLMConfig | None = None, backend=None, *, cors_origins: l
     @router.get("/v1/scenarios")
     def scenarios():
         return [{"id": s, "case_id": load_scenario(s).transcript.metadata.case_id,
-                 "customer": load_scenario(s).transcript.metadata.customer_name} for s in list_scenarios()]
+                 "customer": load_scenario(s).transcript.metadata.customer_name,
+                 "live_docs": has_live_docs(s)} for s in list_scenarios()]
 
     @router.get("/v1/scenarios/{scenario_id}", response_model=MeetingContext)
-    def scenario(scenario_id: str):
+    def scenario(scenario_id: str, live_docs: bool = False):
+        """live_docs=true: the recommendations carry real docs.opswat.com links, so the source review opens real pages."""
         try:
             sc = load_scenario(scenario_id)
+            recs = sc.recommendations_for(live_docs)
         except KeyError as exc:
             raise HTTPException(404, str(exc.args[0])) from exc
-        return MeetingContext(transcript=sc.transcript, recommendations=sc.recommendations, style_profile=sc.style)
+        return MeetingContext(transcript=sc.transcript, recommendations=recs, style_profile=sc.style)
 
     app.include_router(router)
 

@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "case_id": "CASE-24233",
+  "recommendations": [
+    {
+      "id": "rec_1",
+      "rank": 1,
+      "title": "Free the web service port held by the old process",
+      "action": "Confirm the process on port 8008 is an old Core process, end it, then start the Core service and watch the log.",
+      "rationale": "Log says the web service port is already in use and the customer found an old Core worker process on it, which fits the service stopping seconds after start.",
+      "sources": [
+        {
+          "type": "public_doc",
+          "label": "MetaDefender Core: Why does the MetaDefender Core service not start?",
+          "url": "https://www.opswat.com/docs/mdcore/v5.23.0/knowledge-base/why-does-the-metadefender-core-service-not-start-"
+        },
+        {
+          "type": "internal_kb",
+          "label": "KB: Core service stops after upgrade, port already in use",
+          "url": "https://kb.internal.example.invalid/articles/core-port-in-use-after-upgrade"
+        }
+      ],
+      "confidence": 0.88,
+      "trigger_segment_ids": [
+        "seg_006",
+        "seg_010",
+        "seg_013"
+      ]
+    },
+    {
+      "id": "rec_2",
+      "rank": 2,
+      "title": "Compare the upgrade steps with what was done last night",
+      "action": "Check the upgrade guide for stopping services before install and look for a failed stop in the installer log.",
+      "rationale": "The installer reported success, but an old process survived the upgrade; the installer log should show whether the old service was stopped cleanly.",
+      "sources": [
+        {
+          "type": "public_doc",
+          "label": "MetaDefender Core: Product Upgrading",
+          "url": "https://www.opswat.com/docs/mdcore/v5.23.0/installation/upgrading-metadefender-core"
+        },
+        {
+          "type": "confluence",
+          "label": "Upgrading Core 5.x: pre-checks and rollback",
+          "url": "https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/21877"
+        }
+      ],
+      "confidence": 0.66,
+      "trigger_segment_ids": [
+        "seg_004",
+        "seg_008",
+        "seg_011"
+      ]
+    },
+    {
+      "id": "rec_3",
+      "rank": 3,
+      "title": "Known issue: old worker process left running after upgrade",
+      "action": "Check whether the open ticket on a leftover process after upgrade applies to Core 5.13.2.",
+      "rationale": "A similar service-start failure is on file; it would confirm the workaround and whether a fix is planned.",
+      "sources": [
+        {
+          "type": "jira",
+          "label": "Core: old worker process left running after upgrade blocks service start",
+          "url": "https://opswat-internal.atlassian.example.invalid/browse/SUP-51042",
+          "jira_key": "SUP-51042"
+        }
+      ],
+      "confidence": 0.47,
+      "trigger_segment_ids": [
+        "seg_004",
+        "seg_010"
+      ]
+    },
+    {
+      "id": "rec_4",
+      "rank": 4,
+      "title": "Fallback: move the web service to a free port",
+      "action": "If the port stays taken after the old process is gone, move the Core web service to a free port.",
+      "rationale": "Only needed if the conflict persists; changing the port also means updating any client that uses the old one.",
+      "sources": [
+        {
+          "type": "public_doc",
+          "label": "MetaDefender Core: How to change Core Web Management Interface Address Port?",
+          "url": "https://www.opswat.com/docs/mdcore/v5.23.0/knowledge-base/how-to-change-core-web-management-interface-address-port-"
+        }
+      ],
+      "confidence": 0.3,
+      "trigger_segment_ids": [
+        "seg_006",
+        "seg_009"
+      ]
+    }
+  ]
+}
