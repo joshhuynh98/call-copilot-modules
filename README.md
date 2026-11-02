@@ -4,6 +4,24 @@ Modules I own for the **Live Call Copilot for Support Agents** (OPSWAT AgentX 20
 
 Everything runs **offline with a deterministic fake AI** until an AI server is chosen (Claude API or a local OpenAI-compatible server).
 
+## Getting started (new teammate)
+
+You need Windows PowerShell, Python 3.11 or newer, and [uv](https://docs.astral.sh/uv/getting-started/installation/) (`winget install --id=astral-sh.uv -e`).
+
+```powershell
+git clone https://github.com/joshhuynh98/call-copilot-modules
+cd call-copilot-modules
+uv venv
+uv pip install -e ".[dev]"                       # about 10 seconds
+.venv\Scripts\python -m pytest                   # tests
+.venv\Scripts\callcopilot demo --fake            # full flow, offline
+```
+
+- The tests and every `--fake` command are offline and need no AI server and no key. This is enough to try the modules.
+- To use a real AI server, copy `.env.example` to `.env` and fill in your own values (see [Configure the AI server](#configure-the-ai-server)), then [run the API](#run-the-http-api-serve) or drop `--fake` from a command.
+- Never commit `.env` (it holds your API key) or `.venv/` (it is tied to your machine's paths and Python). Both are gitignored; everyone creates their own `.venv` with the commands above.
+- With a reasoning model (for example Qwen3.5 in LM Studio) a real summary plus email can take several minutes. See [the note on timeouts](#run-the-http-api-serve).
+
 ## Quick start (Windows, PowerShell)
 
 ```powershell
@@ -38,6 +56,30 @@ Configuration is **environment variables only** (or a `.env` file, which is giti
 | `COPILOT_API_KEY` | HTTP API: if set, `/v1` requests need an `X-API-Key` header. Blank = open |
 
 If a required variable is missing you get a one-line message naming it (no stack trace). Switching provider is a config change: nothing in the module logic knows which provider is used.
+
+## Run the HTTP API (`serve`)
+
+```powershell
+.venv\Scripts\callcopilot serve --fake        # offline fixtures, no AI server needed
+.venv\Scripts\callcopilot serve               # uses the AI server configured in .env
+.venv\Scripts\callcopilot serve --port 9000   # default is 127.0.0.1:8000; --host changes the address it listens on
+```
+
+Without `--fake`, `serve` reads the AI settings from `.env` (see above), so fill those in first. Then open:
+
+| URL | What |
+|---|---|
+| `http://127.0.0.1:8000/` | Demo page. Shortcut that generates a summary straight away: `/?scenario=icap_upload_timeouts&tab=summary&gen=summary` |
+| `http://127.0.0.1:8000/docs` | Interactive API docs |
+| `http://127.0.0.1:8000/health` | Which AI the API is using, e.g. `{"status":"ok","ai":"openai @ http://<host>:1234/v1 model=<model>","auth":"none"}` |
+
+- **Startup:** if a required variable is missing, `serve` stops at once with a one-line message naming it. It checks the settings only; it does not contact the AI server.
+- **Reachability:** `/health` shows the configured server but does not test it. If the server is down or the URL is wrong, the first summary, email or chat request returns `502` with an `{"error": ...}` message that names `AI_SERVER_URL`.
+- **Timeouts:** summary and email are plain requests with no progress events, and a reasoning model is slow. In one test on `icap_upload_timeouts` with Qwen3.5-9B in LM Studio, the summary took about 4 minutes and the email about 11. Set `AI_REQUEST_TIMEOUT_SECONDS` high enough (600 worked there) and make sure your client does not give up earlier. Chat replies are much quicker.
+- **State:** meetings and chats are held in memory. Run a single process; a restart loses them.
+- **Sharing it:** it listens on localhost by default. If you use `--host` to let other machines reach it, set `COPILOT_API_KEY`, because transcripts contain customer data. Set `COPILOT_CORS_ORIGINS` for a browser front end on another origin.
+
+The endpoints, error codes and the chat stream are described in [docs/frontend.md](docs/frontend.md).
 
 ## What is in here
 
