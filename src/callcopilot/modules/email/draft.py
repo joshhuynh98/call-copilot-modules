@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 
 from callcopilot.shared import policy
-from callcopilot.modules.email.checks import EmailPolicy, check_email, enforce_email_text
+from callcopilot.modules.email.checks import ADVISORY_ONLY, EmailPolicy, check_email, enforce_email_text
 from callcopilot.shared.checks import failed
 from callcopilot.shared.contracts import (
     ClaimToVerify, EmailCore, EmailDraft, MeetingSummary, RecNote, RecommendationSet, StyleProfile, Transcript,
@@ -93,7 +93,8 @@ def draft_email(
         return EmailDraft(subject=c.subject.strip(), body=(c.body.strip() + (f"\n\n{sig}" if sig else "")))
 
     for _ in range(MAX_REPAIRS):
-        problems = [r for r in check_email(as_draft(core), pol, signature=style.signature) if not r.passed]  # hard + soft style
+        problems = [r for r in check_email(as_draft(core), pol, signature=style.signature)
+                    if not r.passed and r.name not in ADVISORY_ONLY]  # hard + soft style; length is the model's call
         if not problems:
             break
         feedback = "\n".join(f"- {p.name}: {'; '.join(p.details) or 'failed'}" for p in problems)

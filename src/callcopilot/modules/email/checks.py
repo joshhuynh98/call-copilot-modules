@@ -4,8 +4,9 @@
 `enforce_email_text` guarantees the hard rules even if the model ignores them after repair.
 
 There are no per-email settings: the model decides the format and length of each email, and these fixed
-rules are the guardrails (plain text, no meeting offers, public links only, no ticket ids, third-party scope,
-a length ceiling). Style preferences (target length, one courtesy line, no filler) are soft.
+rules are the guardrails (plain text, no meeting offers, public links only, no ticket ids, third-party scope).
+Length is not a guardrail and does not steer rewrites: an unusually long email only gets an advisory warning.
+Style preferences (one courtesy line, no filler) are soft.
 """
 from __future__ import annotations
 
@@ -17,8 +18,8 @@ from callcopilot.shared.contracts import EmailDraft, MeetingSummary, Recommendat
 
 from callcopilot.shared.checks import CheckResult, check_style
 
-MAX_EMAIL_WORDS = 220  # hard ceiling: a guardrail against waffle, not the target
-TARGET_EMAIL_WORDS = 150  # soft: most emails should be shorter
+LONG_EMAIL_WORDS = 220  # advice for the agent only: never fails, never cut, never triggers a rewrite
+ADVISORY_ONLY = {"long_email"}  # shown as warnings; the repair loop ignores them so the model's choice of length stands
 MAX_PARAGRAPH_WORDS = 60
 MAX_SUBJECT_CHARS = 100
 
@@ -63,8 +64,9 @@ def check_email(draft: EmailDraft, pol: EmailPolicy, *, signature: str = "") -> 
     out.append(CheckResult("no_meeting_offer", not m, [f"found: '{m.group(0)}'"] if m else []))
 
     n = _words(body)
-    out.append(CheckResult("length_limit", n <= MAX_EMAIL_WORDS, [f"{n} words > ceiling {MAX_EMAIL_WORDS}"] if n > MAX_EMAIL_WORDS else []))
-    out.append(CheckResult("target_length", n <= TARGET_EMAIL_WORDS, [f"{n} words; most emails fit in {TARGET_EMAIL_WORDS}"] if n > TARGET_EMAIL_WORDS else [], soft=True))
+    out.append(CheckResult("long_email", n <= LONG_EMAIL_WORDS,
+                           [f"{n} words, longer than most follow-ups; fine if every finding, step and owner is needed"] if n > LONG_EMAIL_WORDS else [],
+                           soft=True))
 
     long_paras = [p for p in re.split(r"\n\s*\n", body) if _words(p) > MAX_PARAGRAPH_WORDS]
     out.append(CheckResult("short_paragraphs", not long_paras, [f"{len(long_paras)} paragraph(s) over {MAX_PARAGRAPH_WORDS} words"] if long_paras else []))

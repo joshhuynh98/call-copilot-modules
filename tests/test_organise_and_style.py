@@ -151,8 +151,9 @@ def test_the_model_decides_format_and_length_there_are_no_email_settings(icap):
     llm = ScriptedLLM([json.dumps({"subject": "Recap", "body": "Hi Dana," + nl + nl + "Thank you for your time during the meeting." + nl + nl + "Next steps:" + nl + "1. Me: send the steps."})])
     draft_email(icap.transcript, s, icap.style, icap.recommendations, llm)
     system = llm.calls[0][0][0].content
-    for principle in ("YOU DECIDE THE FORMAT AND THE LENGTH", "Informative", "Courteous", "Concise", "ONE brief line", "never exceed 220"):
+    for principle in ("YOU DECIDE THE FORMAT AND THE LENGTH", "Informative", "Courteous", "Concise", "ONE brief line", "rule of thumb, not a limit"):
         assert principle in system, principle
+    assert "220" not in system and "never exceed" not in system  # no hard length number reaches the model
     assert "{{" not in system  # every placeholder was filled
     import inspect
     from callcopilot.shared import contracts
@@ -162,16 +163,37 @@ def test_the_model_decides_format_and_length_there_are_no_email_settings(icap):
     assert "email_options" not in contracts.MeetingContext.model_fields
 
 
-def test_length_ceiling_is_hard_and_target_is_soft(icap):
+def _email_of_about(n_words):
+    """A clean email (greeting, one thank-you, short plain sentences and paragraphs) of at least n_words words, within 20."""
+    para = " ".join(["The timeout is set to sixty seconds on this server."] * 2)  # 20 words
+    body = "Hi Dana," + nl + nl + "Thank you for your time." + nl + nl + (para + nl + nl) * max(0, -(-(n_words - 7) // 20))
+    assert n_words <= len(body.split()) < n_words + 20 or n_words < 27
+    return body
+
+
+def test_email_length_is_soft_there_is_no_hard_limit(icap):
     pol = EmailPolicy.build(icap.recommendations, None)
     def results(n):
-        body = "Hi Dana," + nl + nl + "Thank you for your time." + nl + nl + (("word " * 30).strip() + "." + nl + nl) * (n // 30)
-        return {r.name: r for r in check_email(EmailDraft(subject="s", body=body), pol)}
-    r = results(120)
-    assert r["length_limit"].passed and r["target_length"].passed
-    r = results(180)  # longer than most emails need: a warning, not a failure
-    assert r["length_limit"].passed and not r["target_length"].passed and r["target_length"].soft
-    assert not results(240)["length_limit"].passed  # past the ceiling: hard failure
+        return {r.name: r for r in check_email(EmailDraft(subject="s", body=_email_of_about(n)), pol)}
+    assert not {"length_limit", "target_length"} & set(results(120))  # the old hard ceiling and 150-word target are gone
+    assert results(120)["long_email"].passed and results(180)["long_email"].passed  # 150 is no longer a target
+    for n in (240, 600, 2000):  # very long: a warning, never a failure
+        assert len(_email_of_about(n).split()) > 220
+        r = results(n)
+        assert not r["long_email"].passed and r["long_email"].soft
+        assert not failed(r.values()), [str(x) for x in failed(r.values())]
+
+
+def test_a_long_email_the_model_chose_is_kept_as_written(icap):
+    """The model decides the length: whatever it writes is accepted as is. No word count triggers a rewrite, a cut or a failure."""
+    s = MeetingSummary(**icap.golden_summary.model_dump())
+    for words in (60, 180, 300, 900):
+        body = _email_of_about(words).strip()
+        llm = ScriptedLLM([json.dumps({"subject": "Recap", "body": body})])
+        d = draft_email(icap.transcript, s, icap.style, icap.recommendations, llm)
+        assert len(llm.calls) == 1, f"{words} words triggered a rewrite"
+        assert d.body.startswith(body), "the model's email must not be truncated or rewritten by code"
+        assert not any("needs your attention" in w for w in d.warnings), d.warnings
 
 def test_summary_and_chat_stay_free_of_courtesies(icap):
     result = next(r for r in check_style("Thank you for your time during the meeting.") if r.name == "courtesy_line")

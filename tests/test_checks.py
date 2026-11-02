@@ -37,7 +37,6 @@ def test_good_email_passes(icap):
     ("Hi Dana,\n\nSee https://opswat-internal.atlassian.example.invalid/wiki/spaces/SUP/pages/20114", "no_internal_links"),
     ("Hi Dana,\n\nSee https://kb.internal.example.invalid/articles/icap-500-large-archives", "urls_public_and_provided"),
     ("Hi Dana,\n\nSee https://docs.example-opswat.invalid/made-up-page", "urls_public_and_provided"),
-    ("Hi Dana,\n\nWords " * 100, "length_limit"),
     ("Hi Dana,\n\n" + "word " * 70, "short_paragraphs"),
 ])
 def test_email_violations_are_caught(icap, body, expected):

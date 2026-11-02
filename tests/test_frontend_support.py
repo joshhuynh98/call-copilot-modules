@@ -111,7 +111,7 @@ def test_email_check_respects_signature_and_summary(icap, vdi):
     assert c.post("/v1/email/check", json={"subject": "s", "body": offer}).json()["passed"] is False
     sig = "Best,\nSam " + "word " * 200
     long = c.post("/v1/email/check", json={"subject": "s", "body": "Hi Dana,\n\nShort.\n\n" + sig, "signature": sig}).json()
-    assert next(x for x in long["checks"] if x["name"] == "length_limit")["passed"]  # signature not counted
+    assert next(x for x in long["checks"] if x["name"] == "long_email")["passed"]  # signature not counted
     summary = json.loads(MeetingSummary(**vdi.golden_summary.model_dump()).model_dump_json())
     scope = c.post("/v1/email/check", json={"subject": "s", "body": "Hi Marcus,\n\nWe looked at the logs.", "summary": summary}).json()
     assert any(x["name"] == "third_party_scope_statement" and not x["passed"] for x in scope["checks"])

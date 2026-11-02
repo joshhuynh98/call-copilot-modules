@@ -153,7 +153,7 @@ $("gen-summary").onclick=e=>busy(e.target,"Organising and summarising",genSummar
 const autosize=()=>{const t=$("body");t.style.height="auto";t.style.height=(t.scrollHeight+6)+"px"};
 function wordCount(){const sig=(ctx.style_profile?.signature||"").trim(),b=$("body").value.trim();
   const body=sig&&b.endsWith(sig)?b.slice(0,-sig.length):b;const n=body.split(/\s+/).filter(Boolean).length;
-  $("wc").textContent=`${n} words (signature not counted; most emails fit in 150, never more than 220)`}
+  $("wc").textContent=`${n} words (signature not counted)`}
 async function checkDraft(){
   wordCount();autosize();
   const r=await api(`/v1/meetings/${mid}/email/check`,jsonReq("POST",{subject:$("subj").value,body:$("body").value}));
